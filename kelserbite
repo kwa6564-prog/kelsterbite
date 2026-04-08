@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Kelsterbite — Smash Burger Kelsterbach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--o:#FF6B00;--a:#E8A020;--c:#F0EDE8;--d:#0A0A0A;--m:#111;--card:#161616;--b:rgba(240,237,232,0.08);--green:#2ECC71}
+html{scroll-behavior:smooth}
+body{background:var(--d);color:var(--c);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--d)}::-webkit-scrollbar-thumb{background:var(--o);border-radius:2px}
+.sf{font-family:'Playfair Display',Georgia,serif}
+/* ══════════════════════════
+   MOTION GRAPHICS SYSTEM
+══════════════════════════ */
+
+/* Floating ambient orbs */
+#orbs-canvas{position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.7}
+
+/* Cinematic section dividers — diagonal slash lines */
+.section-slash{position:relative;height:60px;overflow:hidden;pointer-events:none}
+.section-slash::before{content:'';position:absolute;inset:0;background:var(--d);clip-path:polygon(0 0,100% 0,100% 40%,0 100%)}
+
+/* Hero text — each letter individually animated */
+.split-word{display:inline-block;overflow:hidden}
+.split-char{display:inline-block;transform:translateY(110%) rotate(8deg);opacity:0;transition:transform .7s cubic-bezier(.22,1,.36,1),opacity .5s ease}
+.split-char.in{transform:translateY(0) rotate(0deg);opacity:1}
+
+/* Magnetic button effect */
+.mag{display:inline-block;transition:transform .3s cubic-bezier(.22,1,.36,1)}
+
+/* Stats — animated count-up numbers */
+.snum[data-target]{transition:color .3s}
+
+/* Horizontal scrolling ticker */
+.ticker-wrap{overflow:hidden;background:var(--o);padding:10px 0;position:relative}
+.ticker-track{display:flex;animation:tickerScroll 22s linear infinite;white-space:nowrap;width:max-content}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#fff;padding:0 32px;font-weight:600;opacity:.9}
+.ticker-dot{color:rgba(255,255,255,.4);margin:0 8px}
+
+/* Section number labels */
+.sec-number{font-family:'Playfair Display',serif;font-size:clamp(80px,12vw,160px);font-weight:900;color:rgba(255,107,0,.04);position:absolute;top:-20px;right:0;line-height:1;pointer-events:none;user-select:none;z-index:0}
+
+/* Reveal: staggered cards */
+.stagger > *{opacity:0;transform:translateY(40px) scale(.97);transition:opacity .7s ease,transform .7s cubic-bezier(.22,1,.36,1)}
+.stagger.fired > *{opacity:1;transform:translateY(0) scale(1)}
+.stagger.fired > *:nth-child(1){transition-delay:0s}
+.stagger.fired > *:nth-child(2){transition-delay:.1s}
+.stagger.fired > *:nth-child(3){transition-delay:.2s}
+.stagger.fired > *:nth-child(4){transition-delay:.3s}
+.stagger.fired > *:nth-child(5){transition-delay:.4s}
+.stagger.fired > *:nth-child(6){transition-delay:.5s}
+
+/* Scroll progress bar */
+#scroll-progress{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--o),var(--a));z-index:9998;width:0%;transition:width .1s linear}
+
+/* Hero: animated gradient backdrop */
+#hero-gradient{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse 80% 80% at 50% 120%,rgba(255,107,0,.18) 0%,transparent 60%);animation:heroGrad 8s ease-in-out infinite}
+@keyframes heroGrad{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.12) translateY(-5%)}}
+
+/* Section transition: glowing dividing line */
+.glow-line{height:1px;background:linear-gradient(90deg,transparent 0%,rgba(255,107,0,.5) 30%,var(--a) 50%,rgba(255,107,0,.5) 70%,transparent 100%);position:relative;overflow:visible}
+.glow-line::after{content:'';position:absolute;top:-3px;left:0;right:0;height:7px;background:inherit;filter:blur(6px);opacity:.5}
+
+/* Story img — depth parallax wrapper */
+.parallax-img{will-change:transform}
+
+/* Card tilt effect */
+.tilt-card{transition:transform .4s cubic-bezier(.22,1,.36,1),box-shadow .4s;transform-style:preserve-3d}
+
+/* Floating label on section entry */
+.float-in{opacity:0;transform:translateX(-24px);transition:opacity .6s ease,transform .6s cubic-bezier(.22,1,.36,1)}
+.float-in.in{opacity:1;transform:translateX(0)}
+
+/* Pulsing orange dot — live indicator */
+@keyframes livePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,0,.5)}70%{box-shadow:0 0 0 8px rgba(255,107,0,0)}}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--o);display:inline-block;animation:livePulse 2s ease-in-out infinite;margin-right:6px;vertical-align:middle}
+
+/* Menu card — shimmer on hover */
+.menu-item::before{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.03),transparent);transition:left .6s ease;z-index:1;pointer-events:none}
+.menu-item:hover::before{left:140%}
+
+/* Section: image overlay scanline */
+.scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);pointer-events:none;z-index:5}
+
+#grain{position:fixed;inset:0;pointer-events:none;z-index:900;opacity:.22;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")}
+#glow{position:fixed;width:700px;height:700px;border-radius:50%;pointer-events:none;z-index:4;background:radial-gradient(circle,rgba(255,107,0,.09) 0%,transparent 65%);filter:blur(40px);transform:translate(-50%,-50%);left:50%;top:50%}
+#particles{position:fixed;inset:0;pointer-events:none;z-index:3;opacity:.35}
+
+/* INTRO */
+#intro{position:fixed;inset:0;z-index:9999;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity .9s ease}
+#intro.hide{opacity:0;pointer-events:none}
+.intro-ring{position:absolute;border-radius:50%;border:1px solid rgba(255,107,0,.12);animation:ringPulse 4s ease-in-out infinite}
+.intro-ring:nth-child(1){width:300px;height:300px}.intro-ring:nth-child(2){width:500px;height:500px;animation-delay:.6s}.intro-ring:nth-child(3){width:700px;height:700px;animation-delay:1.2s}
+@keyframes ringPulse{0%,100%{opacity:.06;transform:scale(1)}50%{opacity:.18;transform:scale(1.04)}}
+#intro-sparks{position:absolute;inset:0}
+.intro-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;text-align:center}
+#intro-icon{width:90px;height:90px;margin-bottom:28px;opacity:0;transform:scale(.5);transition:opacity .6s ease,transform .7s cubic-bezier(.34,1.4,.64,1)}
+#intro-icon.show{opacity:1;transform:scale(1);animation:iconGlow 2s ease-in-out .7s infinite}
+@keyframes iconGlow{0%,100%{filter:drop-shadow(0 0 12px rgba(255,107,0,.4))}50%{filter:drop-shadow(0 0 28px rgba(255,107,0,.8))}}
+.intro-word{display:flex;margin-bottom:4px}
+.intro-half{font-family:'Playfair Display',serif;font-size:clamp(48px,10vw,110px);font-weight:900;letter-spacing:-.025em;line-height:1;background:linear-gradient(135deg,#fff 0%,#E8A020 45%,#FF6B00 75%,#fff 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.intro-half.left{opacity:0;transform:translateX(-80px);transition:opacity .7s ease,transform .8s cubic-bezier(.22,1,.36,1)}
+.intro-half.right{opacity:0;transform:translateX(80px);transition:opacity .7s ease,transform .8s cubic-bezier(.22,1,.36,1)}
+.intro-half.show{opacity:1;transform:translateX(0)}
+.intro-half.glow{animation:wordGlow 2.5s linear .5s infinite}
+@keyframes wordGlow{0%{background-position:-200% center}100%{background-position:200% center}}
+#intro-tagline{font-size:11px;letter-spacing:.45em;text-transform:uppercase;color:rgba(240,237,232,.38);margin-top:14px;opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease}
+#intro-tagline.show{opacity:1;transform:translateY(0)}
+#intro-line{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);height:1px;width:0;background:linear-gradient(90deg,transparent,var(--a),var(--o),var(--a),transparent);transition:width .9s cubic-bezier(.76,0,.24,1)}
+#intro-line.show{width:110%}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:14px 40px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(10,10,10,.96),transparent);backdrop-filter:blur(16px);opacity:0;transform:translateY(-50px);transition:opacity .7s ease,transform .7s cubic-bezier(.76,0,.24,1)}
+nav.show{opacity:1;transform:translateY(0)}
+.nav-logo{font-family:'Playfair Display',serif;font-size:19px;font-weight:900;letter-spacing:.05em}
+.nav-links{display:flex;gap:24px}
+.nav-links a{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,237,232,.4);text-decoration:none;transition:color .3s}
+.nav-links a:hover{color:var(--c)}
+.nav-right{display:flex;gap:10px;align-items:center}
+.nav-phone{display:flex;align-items:center;gap:7px;background:rgba(255,107,0,.12);border:1px solid rgba(255,107,0,.3);border-radius:100px;padding:8px 15px;text-decoration:none;color:var(--o);transition:background .3s,transform .25s}
+.nav-phone:hover{background:var(--o);color:#fff;transform:scale(1.04)}
+.nav-phone svg{width:13px;height:13px}.nav-phone span{font-size:11px;letter-spacing:.08em;font-weight:600}
+/* CART BTN — Burger Box */
+#cart-btn{position:relative;background:var(--card);border:1px solid var(--b);border-radius:50%;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .3s,transform .25s;flex-shrink:0}
+#cart-btn:hover{border-color:var(--o);transform:scale(1.08)}
+#cart-count{position:absolute;top:-5px;right:-5px;background:var(--o);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(0);transition:opacity .3s,transform .3s}
+#cart-count.show{opacity:1;transform:scale(1)}
+
+/* HERO */
+#home{position:relative;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center}
+#hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.35) saturate(1.2)}
+.hvig{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 15%,rgba(10,10,10,.85) 100%)}
+.hfade{position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,#0A0A0A,transparent)}
+.hero-c{position:relative;z-index:10;padding:0 24px;opacity:0;transform:translateY(32px);transition:opacity .8s ease,transform .8s cubic-bezier(.76,0,.24,1);text-align:center;max-width:800px;margin:0 auto}
+.hero-c.show{opacity:1;transform:translateY(0)}
+.hero-eye{font-size:10px;letter-spacing:.45em;text-transform:uppercase;color:var(--o);margin-bottom:20px;opacity:0;transition:opacity .6s ease .2s}
+.hero-c.show .hero-eye{opacity:1}
+.hero-h1{font-family:'Playfair Display',serif;font-size:clamp(58px,9vw,130px);font-weight:900;line-height:.88;letter-spacing:-.03em}
+.hero-h1 em{color:var(--o);font-style:italic}
+.hero-sub{font-size:16px;line-height:1.8;opacity:.6;margin:22px auto 0;max-width:360px}
+.hero-btns{display:flex;gap:14px;margin-top:44px;flex-wrap:wrap;justify-content:center}
+.btn-p{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;padding:14px 32px;background:var(--o);color:#fff;border-radius:100px;text-decoration:none;border:none;cursor:pointer;transition:background .3s,transform .25s,box-shadow .3s}
+.btn-p:hover{background:#FF8C2A;transform:scale(1.05);box-shadow:0 8px 28px rgba(255,107,0,.45)}
+.btn-o{font-size:12px;letter-spacing:.16em;text-transform:uppercase;padding:14px 32px;border:1px solid rgba(240,237,232,.2);color:var(--c);border-radius:100px;text-decoration:none;transition:border-color .3s,transform .25s}
+.btn-o:hover{border-color:var(--c);transform:scale(1.04)}
+.scroll-h{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;transition:opacity 1s ease}
+.scroll-h.show{opacity:.32}.scroll-h span{font-size:8px;letter-spacing:.38em;text-transform:uppercase}
+.sbar{width:1px;height:30px;background:linear-gradient(to bottom,var(--o),transparent);animation:sb 1.8s ease-in-out infinite}
+@keyframes sb{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* HALAL VIDEO */
+.halal-band{position:relative;padding:44px 48px;display:flex;align-items:center;justify-content:center;gap:24px;overflow:hidden;border-top:1px solid rgba(46,204,113,.2);border-bottom:1px solid rgba(46,204,113,.2)}
+.halal-video-bg{position:absolute;inset:0;z-index:0;overflow:hidden}
+.halal-video-bg::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(135deg,rgba(8,35,12,.9),rgba(4,20,6,.93))}
+.halal-video-bg::after{content:'🌿 🐄 🌿 🌱 🐄 🌿 🌱 🌿 🐄 🌱 🌿 🐄 🌿 🌱 🐄 🌿';position:absolute;bottom:8px;left:-10%;font-size:28px;letter-spacing:16px;white-space:nowrap;opacity:.1;animation:meadow 9s linear infinite;z-index:0}
+@keyframes meadow{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.halal-video-bg video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.25) saturate(.7) hue-rotate(50deg);z-index:0}
+.halal-content{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap}
+.halal-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--green),#1e8449);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 28px rgba(46,204,113,.5);font-size:28px}
+.halal-text h3{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--green)}
+.halal-text p{font-size:13px;opacity:.58;margin-top:4px;max-width:380px;line-height:1.6}
+.halal-cert{background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.35);border-radius:100px;padding:10px 22px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--green);font-weight:700;flex-shrink:0}
+
+/* STATS */
+.stats{background:var(--m);border-top:1px solid var(--b);border-bottom:1px solid var(--b);padding:24px 0}
+.stats-i{max-width:900px;margin:0 auto;display:flex;justify-content:space-around;flex-wrap:wrap;gap:16px;padding:0 24px}
+.snum{font-family:'Playfair Display',serif;font-size:clamp(24px,4vw,36px);font-weight:700;color:var(--o)}
+.slbl{font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.4;margin-top:4px}
+
+/* PAYMENT BAND */
+.payment-band{background:var(--m);border-bottom:1px solid var(--b);padding:26px 48px}
+.payment-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;flex-wrap:wrap;gap:20px}
+.payment-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;flex-shrink:0;margin-right:8px}
+.payment-methods{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.pay-pill{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px;transition:border-color .3s}
+.pay-pill:hover{border-color:rgba(255,107,0,.3)}
+.pay-pill-icon{font-size:16px}
+.pay-all{border-color:rgba(46,204,113,.3);color:var(--green)}
+
+/* PHONE BAND */
+.pband{background:linear-gradient(135deg,var(--o),#FF8C2A);padding:28px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;position:relative;overflow:hidden}
+.pband::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 30px,rgba(255,255,255,.02) 30px,rgba(255,255,255,.02) 31px)}
+.pband-l{position:relative;z-index:1}
+.pband-eye{font-size:10px;letter-spacing:.35em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:6px}
+.pband-title{font-family:'Playfair Display',serif;font-size:clamp(22px,4vw,34px);font-weight:900;color:#fff;line-height:1.1}
+.pband-sub{font-size:13px;color:rgba(255,255,255,.7);margin-top:6px}
+.pband-r{position:relative;z-index:1;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.pnum{font-family:'Playfair Display',serif;font-size:clamp(24px,4vw,42px);font-weight:900;color:#fff;text-decoration:none;display:flex;align-items:center;gap:12px;transition:transform .3s}
+.pnum:hover{transform:scale(1.04)}
+.pnum svg{width:32px;height:32px;animation:pp 2s ease-in-out infinite}
+@keyframes pp{0%,100%{transform:scale(1) rotate(0)}25%{transform:scale(1.12) rotate(-9deg)}75%{transform:scale(1.06) rotate(5deg)}}
+.pbadge{background:rgba(0,0,0,.2);border-radius:100px;padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#fff;font-weight:500}
+
+.sec-eye{font-size:10px;letter-spacing:.35em;text-transform:uppercase;color:var(--o);margin-bottom:12px}
+.sec-h{font-family:'Playfair Display',serif;font-size:clamp(36px,6vw,70px);font-weight:700;letter-spacing:-.02em}
+.sec-head{text-align:center;margin-bottom:56px}
+
+/* STORY */
+#story{padding:110px 48px}
+.story-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.story-div{width:40px;height:1px;background:linear-gradient(90deg,var(--o),transparent);margin:20px 0}
+.story-h{font-family:'Playfair Display',serif;font-size:clamp(32px,5vw,58px);font-weight:700;line-height:1.1;letter-spacing:-.02em}
+.story-h em{color:var(--o)}
+.story-p{font-size:15px;line-height:1.9;opacity:.6;margin-bottom:14px}
+.story-img{position:relative}.story-img img{width:100%;border-radius:18px;filter:brightness(.88) saturate(1.15);display:block}
+.tbadge{position:absolute;bottom:-18px;right:-18px;background:var(--o);padding:16px 22px;border-radius:12px;box-shadow:0 12px 40px rgba(255,107,0,.4)}
+.tbadge-n{font-family:'Playfair Display',serif;font-size:30px;font-weight:900;color:#fff;line-height:1}
+.tbadge-l{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-top:3px}
+
+/* VEGAN */
+#vegan{background:#0A0A0A;overflow:hidden}
+.vbar-top,.vbar-bot{background:linear-gradient(90deg,#1e6b2e,#2ECC71,#1e6b2e);height:4px}
+.vbody{padding:90px 48px 76px;background:linear-gradient(180deg,#020d04,#0A0A0A);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center}
+.vglow{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);width:700px;height:380px;background:radial-gradient(ellipse,rgba(46,204,113,.1),transparent 68%);pointer-events:none}
+@keyframes vshim{0%{background-position:-200% center}100%{background-position:200% center}}
+.vtitle{font-family:'Playfair Display',serif;font-size:clamp(44px,8vw,92px);font-weight:900;letter-spacing:-.03em;line-height:1;background:linear-gradient(90deg,#F0EDE8 0%,#2ECC71 35%,#1abc9c 55%,#F0EDE8 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:vshim 4s linear infinite}
+.vsub{font-size:15px;line-height:1.8;opacity:.52;margin-top:16px;max-width:440px}
+.vleaf-badge{margin-top:36px;display:flex;align-items:center;gap:16px;background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.25);border-radius:100px;padding:16px 32px;position:relative;z-index:2}
+.vleaf-icon{font-size:36px;animation:leafSway 3s ease-in-out infinite}
+@keyframes leafSway{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+.vleaf-text h4{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--green)}
+.vleaf-text p{font-size:12px;opacity:.55;margin-top:3px}
+.vcards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;width:100%;margin-top:44px;position:relative;z-index:2}
+.vcard{background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.15);border-radius:16px;padding:24px;text-align:center;transition:transform .3s,border-color .3s}
+.vcard:hover{transform:translateY(-5px);border-color:rgba(46,204,113,.35)}
+.vcard-icon{font-size:32px;margin-bottom:10px}
+.vcard h5{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--green)}
+.vcard p{font-size:12px;opacity:.5;margin-top:6px;line-height:1.6}
+
+/* SERVICES */
+#services{padding:100px 48px;background:var(--d)}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;max-width:1100px;margin:40px auto 0}
+.svc-card{background:var(--card);border:1px solid var(--b);border-radius:18px;padding:28px 24px;transition:transform .4s cubic-bezier(.23,1,.32,1),border-color .3s,box-shadow .4s}
+.svc-card:hover{transform:translateY(-6px);border-color:rgba(255,107,0,.2);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.svc-icon{font-size:36px;margin-bottom:14px}
+.svc-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px}
+.svc-desc{font-size:13px;opacity:.5;line-height:1.7}
+
+/* MENU SECTION */
+#menu{padding:100px 48px;background:var(--m);position:relative;overflow:hidden}
+#menu::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 80% 20%,rgba(255,107,0,.04),transparent 60%);pointer-events:none}
+.cat-tabs{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:52px}
+.cat-tab{font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:9px 20px;border-radius:100px;border:1px solid var(--b);background:transparent;color:rgba(240,237,232,.45);cursor:pointer;transition:all .3s;white-space:nowrap}
+.cat-tab:hover{border-color:rgba(255,107,0,.3);color:var(--c)}.cat-tab.active{background:var(--o);border-color:var(--o);color:#fff}
+.cat-section{display:none;max-width:1100px;margin:0 auto;animation:fadeIn .4s ease}.cat-section.visible{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.cat-head{margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:14px}
+.cat-emoji{font-size:28px}.cat-title{font-family:'Playfair Display',serif;font-size:clamp(24px,4vw,38px);font-weight:700}
+.cat-note{font-size:12px;opacity:.38;margin-left:auto;text-align:right;line-height:1.6}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.menu-item{background:linear-gradient(160deg,#1c1c1c,#131313);border:1px solid var(--b);border-radius:16px;overflow:hidden;transition:transform .45s cubic-bezier(.23,1,.32,1),box-shadow .45s,border-color .3s;position:relative}
+.menu-item:hover{transform:translateY(-7px);box-shadow:0 32px 80px rgba(0,0,0,.6);border-color:rgba(255,107,0,.2)}
+.menu-item.featured{border-color:rgba(255,107,0,.18)}
+.mi-img{width:100%;height:155px;overflow:hidden;position:relative}
+.mi-img img{width:100%;height:100%;object-fit:cover;filter:brightness(.65) saturate(1.2);transition:transform .6s cubic-bezier(.23,1,.32,1),filter .5s;display:block}
+.menu-item:hover .mi-img img{transform:scale(1.1);filter:brightness(.8) saturate(1.4)}
+.mi-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(19,19,19,1) 0%,rgba(19,19,19,.1) 50%,transparent 100%)}
+
+.mi-body{padding:16px 18px 18px}
+.mi-badges{display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap}
+.mi-tag{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:2px 9px;border-radius:100px;border:1px solid}
+.mi-name{font-family:'Playfair Display',serif;font-size:19px;font-weight:700}
+.mi-price-wrap{display:flex;flex-direction:column;gap:2px}
+.mi-price-single{display:flex;align-items:baseline;gap:5px}
+.mi-price-num{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--c);transition:color .3s}
+.menu-item:hover .mi-price-num{color:var(--a)}
+.mi-price-label{font-size:9px;opacity:.45;letter-spacing:.08em;text-transform:uppercase}
+.mi-ingr{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+.mi-chip{font-size:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:100px;padding:2px 8px;opacity:.55;transition:all .2s}
+.menu-item:hover .mi-chip{opacity:.75;background:rgba(255,107,0,.06);border-color:rgba(255,107,0,.18)}
+.mi-foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--b)}
+.mi-order-btn{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;padding:8px 14px;background:var(--o);color:#fff;border-radius:100px;border:none;cursor:pointer;transition:background .3s,transform .2s;white-space:nowrap}
+.mi-order-btn:hover{background:#FF8C2A;transform:scale(1.05)}
+.show-more-btn{display:flex;align-items:center;justify-content:center;gap:10px;margin:24px auto 0;padding:11px 28px;background:rgba(255,107,0,.1);border:1px solid rgba(255,107,0,.3);border-radius:100px;color:var(--o);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:all .3s;width:fit-content}
+.show-more-btn:hover{background:var(--o);color:#fff;border-color:var(--o)}
+.extra-items{display:none}.extra-items.visible{display:grid}
+.simple-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.si-item{background:var(--card);border:1px solid var(--b);border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;transition:border-color .3s,transform .3s}
+.si-item:hover{border-color:rgba(255,107,0,.22);transform:translateX(4px)}
+.si-name{font-size:14px;font-weight:500}.si-sub{font-size:11px;opacity:.42;margin-top:2px}
+.si-price{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--a);flex-shrink:0;margin-left:16px}
+.menu-note{background:rgba(255,107,0,.07);border:1px solid rgba(255,107,0,.18);border-radius:10px;padding:12px 16px;font-size:12px;color:rgba(240,237,232,.65);margin-top:16px;display:flex;align-items:center;gap:10px}
+
+/* GALLERY */
+#gallery{padding:110px 48px;overflow:hidden}
+.gal-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:16px;max-width:1100px;margin:0 auto}
+.gi{border-radius:20px;overflow:hidden;position:relative;cursor:pointer}
+.gi img{width:100%;height:100%;object-fit:cover;min-height:280px;display:block;transition:transform .7s cubic-bezier(.23,1,.32,1),filter .5s}
+.gi:hover img{transform:scale(1.18);filter:brightness(1.08) saturate(1.3)}
+.gi-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,10,.75),transparent 55%);opacity:0;transition:opacity .4s}
+.gi:hover .gi-overlay{opacity:1}
+.gi::before{content:'';position:absolute;inset:0;border-radius:20px;box-shadow:inset 0 0 0 0 rgba(255,107,0,.4);transition:box-shadow .4s;z-index:2;pointer-events:none}
+.gi:hover::before{box-shadow:inset 0 0 0 3px rgba(255,107,0,.5)}
+.gi-label{position:absolute;bottom:20px;left:20px;transform:translateY(12px);opacity:0;transition:opacity .4s,transform .4s;z-index:3}
+.gi:hover .gi-label{opacity:1;transform:translateY(0)}
+.gi-label span{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}
+.gi-label small{display:block;font-size:10px;opacity:.6;letter-spacing:.1em;margin-top:2px}
+
+/* HUNGER KICK */
+#hunger{background:#050505;padding:100px 48px;overflow:hidden;position:relative}
+.hglow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 60% at 20% 50%,rgba(255,107,0,.07),transparent 60%)}
+.hhead{text-align:center;margin-bottom:80px;position:relative;z-index:2}
+.heye{font-size:10px;letter-spacing:.42em;text-transform:uppercase;color:var(--o);margin-bottom:16px;animation:ep 3s ease-in-out infinite}
+@keyframes ep{0%,100%{opacity:.65}50%{opacity:1}}
+.htitle{font-family:'Playfair Display',serif;font-size:clamp(40px,7vw,88px);font-weight:900;letter-spacing:-.03em;line-height:1}
+.htitle em{color:var(--o)}
+.fstage{display:flex;align-items:flex-end;justify-content:center;gap:40px;flex-wrap:wrap;position:relative;z-index:2}
+@keyframes fburg{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-20px) rotate(-3deg)}}
+@keyframes ffry{0%,100%{transform:translateY(0) rotate(4deg)}50%{transform:translateY(-13px) rotate(4deg)}}
+@keyframes fsau{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-11px) rotate(-6deg)}}
+@keyframes pspin{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(2deg) translateY(-4px)}}
+.fi{text-align:center;flex-shrink:0}
+.ff{border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.06);transition:transform .5s cubic-bezier(.23,1,.32,1),box-shadow .5s}
+.ff img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.9) saturate(1.4) contrast(1.1)}
+.fi.side .ff{width:210px;height:210px}.fi.main .ff{width:310px;height:310px;box-shadow:0 40px 100px rgba(255,107,0,.3),0 60px 140px rgba(0,0,0,.75);border-color:rgba(255,107,0,.18)}
+.fi:hover .ff{transform:scale(1.12)}
+.flbl{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-top:14px}
+.fsub{font-size:11px;opacity:.35;margin-top:3px}
+.fi.side{animation:ffry 3.6s ease-in-out infinite}.fi.main{animation:fburg 4s ease-in-out infinite;position:relative}.fi.sauce{animation:fsau 4.3s ease-in-out .5s infinite}
+.fglow{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);width:250px;height:34px;background:radial-gradient(ellipse,rgba(255,107,0,.55),transparent 70%);filter:blur(14px);border-radius:50%;pointer-events:none}
+.ptag{position:absolute;top:-14px;left:-16px;background:var(--o);border-radius:12px;padding:10px 18px;box-shadow:0 8px 28px rgba(255,107,0,.65);z-index:10;animation:pspin 3.2s ease-in-out infinite}
+.ptag-n{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:#fff;line-height:1}
+.ptag-l{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.85);margin-top:2px}
+.hcta{text-align:center;margin-top:70px;position:relative;z-index:2}
+.hcta p{font-size:14px;opacity:.35;margin-bottom:20px}
+
+/* REVIEWS */
+#reviews{padding:100px 48px;background:var(--m);overflow:hidden}
+.rcarousel{position:relative;max-width:820px;margin:0 auto;min-height:180px}
+.rcard{position:absolute;inset:0;background:linear-gradient(145deg,#1e1e1e,#141414);border:1px solid var(--b);border-radius:22px;padding:36px 40px;opacity:0;transform:translateX(60px) scale(.97);transition:opacity .65s cubic-bezier(.76,0,.24,1),transform .65s cubic-bezier(.76,0,.24,1);pointer-events:none}
+.rcard.active{opacity:1;transform:translateX(0) scale(1);pointer-events:all;z-index:2;position:relative}
+.rcard.prev{opacity:0;transform:translateX(-60px) scale(.97);z-index:1;position:absolute}
+.rquote{font-size:64px;font-family:'Playfair Display',serif;color:var(--o);opacity:.12;line-height:.7;margin-bottom:6px}
+.rtxt{font-family:'Playfair Display',serif;font-size:18px;font-style:italic;line-height:1.75;opacity:.92}
+.rfoot{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:18px;border-top:1px solid var(--b)}
+.rname{font-size:14px;font-weight:600;color:var(--a)}.rloc{font-size:10px;opacity:.38;margin-top:2px}
+.rstars{color:#FFB800;font-size:16px;letter-spacing:2px}.rdate{font-size:10px;opacity:.25}
+.rdots{display:flex;justify-content:center;gap:10px;margin-top:32px}
+.rdot{width:8px;height:8px;border-radius:50%;background:rgba(240,237,232,.18);cursor:pointer;transition:background .3s,width .3s,border-radius .3s}
+.rdot.active{background:var(--o);width:24px;border-radius:4px}
+.rrating{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:44px}
+.stars-big{color:#FFB800;font-size:22px;letter-spacing:3px}
+.more-reviews-btn{display:block;margin:28px auto 0;padding:12px 28px;background:transparent;border:1px solid rgba(255,107,0,.3);border-radius:100px;color:var(--o);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:all .3s;width:fit-content;text-decoration:none}
+.more-reviews-btn:hover{background:var(--o);color:#fff;border-color:var(--o)}
+
+/* WRITE REVIEW */
+#write-review{padding:80px 48px;background:#0d0d0d;border-top:1px solid var(--b)}
+.wr-inner{max-width:700px;margin:0 auto}
+.wr-head{text-align:center;margin-bottom:40px}
+.wr-head h2{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,48px);font-weight:700;margin-bottom:10px}
+.wr-head p{font-size:14px;opacity:.45;line-height:1.7}
+.star-picker{display:flex;gap:8px;justify-content:center;margin-bottom:28px;font-size:40px;cursor:pointer}
+.star-pick{color:rgba(240,237,232,.15);transition:color .2s,transform .2s;user-select:none}
+.star-pick.active{color:#FFB800;transform:scale(1.2)}
+.wr-form{display:flex;flex-direction:column;gap:14px}
+.wr-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.wr-field{display:flex;flex-direction:column;gap:6px}
+.wr-field label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.45}
+.wr-field input,.wr-field textarea{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:12px 14px;color:var(--c);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .3s;width:100%}
+.wr-field input:focus,.wr-field textarea:focus{border-color:var(--o)}
+.wr-field textarea{resize:none;height:90px}
+.photo-upload{border:1px dashed rgba(255,107,0,.3);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:border-color .3s,background .3s;position:relative}
+.photo-upload:hover{border-color:var(--o);background:rgba(255,107,0,.04)}
+.photo-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-upload-icon{font-size:28px;margin-bottom:8px}
+.photo-upload p{font-size:12px;opacity:.45}
+.photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.photo-thumb{width:60px;height:60px;border-radius:8px;object-fit:cover;border:1px solid var(--b)}
+.wr-redirect-note{background:rgba(255,107,0,.07);border:1px solid rgba(255,107,0,.18);border-radius:12px;padding:14px 18px;font-size:13px;color:rgba(240,237,232,.7);line-height:1.6;display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.wr-submit{width:100%;padding:15px;background:var(--o);color:#fff;border:none;border-radius:100px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:background .3s,transform .2s;box-shadow:0 6px 24px rgba(255,107,0,.3)}
+.wr-submit:hover{background:#FF8C2A;transform:scale(1.02)}
+.wr-success{display:none;text-align:center;padding:32px;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.25);border-radius:16px}
+.wr-success.show{display:block}
+.wr-success h3{font-family:'Playfair Display',serif;font-size:24px;margin-bottom:8px;color:var(--green)}
+
+/* LOCATIONS */
+#locations{padding:120px 48px}
+.loc-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.loc-card{padding:24px;border-radius:14px;margin-bottom:14px;border:1px solid rgba(255,107,0,.32);background:rgba(255,107,0,.04)}
+.loc-badge{display:inline-block;font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;padding:3px 10px;border-radius:100px;margin-bottom:10px;color:var(--o);border:1px solid rgba(255,107,0,.28);background:rgba(255,107,0,.1)}
+.loc-name{font-family:'Playfair Display',serif;font-size:19px;font-weight:600}
+.loc-addr{font-size:12px;opacity:.42;margin-top:4px}
+.loc-hrs{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:12px}
+.loc-day{opacity:.42;text-align:right}.loc-time{color:var(--c)}.loc-closed{color:rgba(255,100,80,.85)}
+.loc-img{border-radius:18px;overflow:hidden;height:400px;border:1px solid var(--b);position:relative}
+.loc-img img{width:100%;height:100%;object-fit:cover;filter:brightness(.7) saturate(.9);display:block}
+
+/* CTA */
+#order-cta{padding:120px 48px;text-align:center;background:linear-gradient(135deg,#0A0A0A 0%,#180900 50%,#0A0A0A 100%);border-top:1px solid var(--b);position:relative;overflow:hidden}
+.order-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,0,.08),transparent 65%);pointer-events:none}
+.order-eye{font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:var(--o);margin-bottom:20px}
+.order-h{font-family:'Playfair Display',serif;font-size:clamp(48px,9vw,110px);font-weight:900;letter-spacing:-.03em;line-height:.93;margin-bottom:26px}
+.order-h em{color:var(--o)}
+.order-sub{font-size:15px;opacity:.46;max-width:360px;margin:0 auto 48px;line-height:1.8}
+.order-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;z-index:2}
+
+/* IMPRESSUM */
+#impressum{padding:80px 48px;background:#0a0a0a;border-top:1px solid var(--b)}
+.imp-inner{max-width:800px;margin:0 auto}
+.imp-h{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;margin-bottom:32px}
+.imp-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.imp-sec h3{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--o);margin-bottom:10px;opacity:.8}
+.imp-sec p,.imp-sec a{font-size:14px;line-height:1.9;opacity:.52;display:block;text-decoration:none;color:var(--c);transition:opacity .2s}
+.imp-sec a:hover{opacity:1}
+
+/* FOOTER */
+footer{padding:32px 48px;border-top:1px solid var(--b);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.flogo{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;letter-spacing:.06em}
+.fcopy{font-size:11px;opacity:.25;letter-spacing:.1em}
+.flinks{display:flex;gap:20px;align-items:center}
+.flinks a{font-size:11px;opacity:.32;text-decoration:none;color:var(--c);letter-spacing:.06em;transition:opacity .25s;display:flex;align-items:center;gap:6px}
+.flinks a:hover{opacity:1}
+.flinks svg{width:15px;height:15px}
+
+/* REVEAL */
+.rev{opacity:0;transform:translateY(28px);transition:opacity .85s ease,transform .85s cubic-bezier(.76,0,.24,1)}
+.rev.v{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+.rev-l{opacity:0;transform:translateX(-30px);transition:opacity .85s ease,transform .85s cubic-bezier(.76,0,.24,1)}.rev-l.v{opacity:1;transform:translateX(0)}
+.rev-r{opacity:0;transform:translateX(30px);transition:opacity .85s ease,transform .85s cubic-bezier(.76,0,.24,1)}.rev-r.v{opacity:1;transform:translateX(0)}
+
+/* MENU POSTER MODAL */
+#poster-ov{position:fixed;inset:0;background:rgba(5,5,5,.97);z-index:700;opacity:0;pointer-events:none;transition:opacity .35s ease;overflow-y:auto;padding:40px 24px}
+#poster-ov.open{opacity:1;pointer-events:all}
+#poster-inner{max-width:1000px;margin:0 auto;transform:translateY(24px);transition:transform .4s cubic-bezier(.76,0,.24,1)}
+#poster-ov.open #poster-inner{transform:translateY(0)}
+.poster-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid var(--b)}
+.poster-head h2{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,52px);font-weight:900}
+.poster-head p{font-size:12px;opacity:.4;margin-top:4px}
+.xbtn{background:none;border:none;color:var(--c);cursor:pointer;opacity:.45;font-size:26px;transition:opacity .2s}.xbtn:hover{opacity:1}
+.pcat{margin-bottom:40px}
+.pcat-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px}
+.pcat-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.p-item{background:var(--card);border:1px solid var(--b);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.p-item:hover{border-color:rgba(255,107,0,.2)}
+.p-item-l{flex:1}
+.p-item-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700}
+.p-item-ingr{font-size:11px;opacity:.4;margin-top:3px;line-height:1.5}
+.p-item-r{text-align:right;flex-shrink:0}
+.p-price-main{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--a)}
+.p-price-lbl{font-size:9px;opacity:.38;letter-spacing:.07em;text-transform:uppercase;margin-top:1px}
+.p-price-2{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--o);margin-top:3px}
+.p-price-2l{font-size:9px;opacity:.38;letter-spacing:.06em;text-transform:uppercase}
+.pcat-simple{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.p-si{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center}
+.p-si-name{font-size:13px;font-weight:500}
+.p-si-price{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--a)}
+.poster-cta{text-align:center;margin-top:32px;padding-top:32px;border-top:1px solid var(--b)}
+
+/* ═══════════════════════════════════
+   BUILDER MODAL — Per-item configurator
+═══════════════════════════════════ */
+#builder-ov{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;opacity:0;pointer-events:none;transition:opacity .35s ease;display:flex;align-items:center;justify-content:center;padding:20px}
+#builder-ov.open{opacity:1;pointer-events:all}
+#builder-modal{background:#0f0f0f;border:1px solid var(--b);border-radius:24px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;transform:scale(.95) translateY(20px);transition:transform .4s cubic-bezier(.76,0,.24,1)}
+#builder-ov.open #builder-modal{transform:scale(1) translateY(0)}
+.bm-head{padding:22px 26px 16px;border-bottom:1px solid var(--b);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#0f0f0f;z-index:2}
+.bm-head h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+.bm-title-sub{font-size:11px;opacity:.38;margin-top:2px}
+.bm-body{padding:20px 26px 8px}
+.bm-sec{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--o);margin:16px 0 8px;display:block}
+.bm-sec:first-child{margin-top:0}
+/* Patty choice */
+.bm-patty{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.bm-patty-opt{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:12px;cursor:pointer;transition:all .25s;text-align:center}
+.bm-patty-opt:hover{border-color:rgba(255,107,0,.3)}
+.bm-patty-opt.sel{border-color:var(--o);background:rgba(255,107,0,.08)}
+.bm-patty-opt .pp{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--a)}
+.bm-patty-opt .pl{font-size:11px;opacity:.5;margin-top:2px}
+/* Qty row */
+.bm-qty-row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--b);border-radius:10px;padding:12px 14px}
+.bm-qty-label{flex:1;font-size:14px;font-weight:500}
+.bm-qty-info{font-size:11px;opacity:.35;margin-top:1px}
+.bm-qty-controls{display:flex;align-items:center;gap:8px}
+.qb{width:30px;height:30px;border-radius:50%;background:rgba(255,107,0,.12);border:1px solid rgba(255,107,0,.28);color:var(--o);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1;font-weight:700}
+.qb:hover{background:var(--o);color:#fff}
+.qn{font-family:'Playfair Display',serif;font-size:18px;min-width:24px;text-align:center}
+/* Menu upgrade toggle */
+.bm-upgrade{background:rgba(232,160,32,.07);border:1px solid rgba(232,160,32,.22);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:12px}
+.bm-upgrade:hover{border-color:var(--a)}
+.bm-upgrade.sel{border-color:var(--a);background:rgba(232,160,32,.14)}
+.bm-uch{width:22px;height:22px;border-radius:50%;border:2px solid rgba(232,160,32,.35);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.bm-upgrade.sel .bm-uch{background:var(--a);border-color:var(--a)}
+.bm-upgrade.sel .bm-uch::after{content:'✓';color:#fff;font-size:11px;font-weight:700}
+.bm-upgrade-text{flex:1}
+.bm-upgrade-title{font-size:14px;font-weight:600;color:var(--a)}
+.bm-upgrade-desc{font-size:11px;opacity:.45;margin-top:2px}
+.bm-upgrade-price{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--a)}
+/* Upgrade extras — shown when upgrade toggled */
+#bm-upgrade-extras{display:none;background:rgba(232,160,32,.04);border-radius:10px;padding:14px;margin-top:8px;border:1px solid rgba(232,160,32,.12)}
+/* Option chips */
+.bm-opts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px}
+.bm-opt{padding:6px 13px;border-radius:100px;border:1px solid var(--b);font-size:11px;cursor:pointer;transition:all .25s;background:transparent;color:var(--c)}
+.bm-opt:hover{border-color:rgba(255,107,0,.35)}
+.bm-opt.sel{background:var(--o);border-color:var(--o);color:#fff}
+/* Snacks/Extras accordion in builder */
+.bm-extras-toggle{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--b);border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color .3s;margin-bottom:4px}
+.bm-extras-toggle:hover{border-color:rgba(255,107,0,.25)}
+.bm-extras-toggle span{font-size:13px;font-weight:500}
+.bm-extras-toggle svg{width:16px;height:16px;transition:transform .3s;opacity:.5}
+.bm-extras-toggle.open svg{transform:rotate(180deg)}
+.bm-extras-panel{display:none;padding:4px 0 8px;}
+.bm-extras-panel.open{display:block}
+.bm-extra-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border:1px solid var(--b);border-radius:9px;margin-bottom:6px;background:rgba(255,255,255,.02)}
+.bm-extra-item-left{flex:1}
+.bm-extra-item-name{font-size:13px;font-weight:500}
+.bm-extra-item-price{font-size:11px;color:var(--a);margin-top:1px}
+.bm-extra-qty{display:flex;align-items:center;gap:6px}
+.eqb{width:24px;height:24px;border-radius:50%;background:rgba(255,107,0,.1);border:1px solid rgba(255,107,0,.22);color:var(--o);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1;font-weight:700}
+.eqb:hover{background:var(--o);color:#fff}
+.eqn{font-family:'Playfair Display',serif;font-size:14px;min-width:18px;text-align:center}
+/* Notes */
+.bm-notes{width:100%;background:var(--card);border:1px solid var(--b);border-radius:10px;padding:11px 13px;color:var(--c);font-family:'DM Sans',sans-serif;font-size:13px;resize:none;height:60px;outline:none;transition:border-color .3s;margin-top:4px}
+.bm-notes:focus{border-color:var(--o)}
+/* Footer */
+.bm-foot{padding:16px 26px;border-top:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;bottom:0;background:#0f0f0f}
+.bm-total{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--o)}
+.bm-total-label{font-size:10px;opacity:.4;letter-spacing:.1em;text-transform:uppercase}
+.bm-add{padding:12px 24px;background:var(--o);color:#fff;border:none;border-radius:100px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:background .3s,transform .2s;box-shadow:0 4px 18px rgba(255,107,0,.3)}
+.bm-add:hover{background:#FF8C2A;transform:scale(1.04)}
+
+/* ═══════════════════════════════════
+   CART DRAWER
+═══════════════════════════════════ */
+#cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;opacity:0;pointer-events:none;transition:opacity .35s ease}
+#cart-overlay.open{opacity:1;pointer-events:all}
+#cart-drawer{position:fixed;top:0;right:0;bottom:0;width:460px;max-width:96vw;background:#0f0f0f;border-left:1px solid var(--b);z-index:801;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .4s cubic-bezier(.76,0,.24,1)}
+#cart-drawer.open{transform:translateX(0)}
+.cart-head{padding:18px 22px 14px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cart-head-left{display:flex;align-items:center;gap:10px}
+.cart-head-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700}
+.cart-head-count{font-size:11px;opacity:.45;background:var(--card);border-radius:100px;padding:3px 10px;border:1px solid var(--b)}
+.cart-close{background:none;border:none;color:var(--c);cursor:pointer;opacity:.45;font-size:22px;line-height:1;transition:opacity .2s}.cart-close:hover{opacity:1}
+.cart-items{flex:1;overflow-y:auto;padding:12px 22px}
+.cart-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;opacity:.35;text-align:center}
+.cart-empty-state svg{width:56px;height:56px;opacity:.6}
+.cart-empty-state p{font-size:14px}
+/* Cart item card */
+.cart-item{background:var(--card);border:1px solid var(--b);border-radius:14px;padding:14px 16px;margin-bottom:10px;position:relative}
+.cart-item-header{display:flex;align-items:flex-start;gap:8px}
+.cart-item-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;flex:1;line-height:1.2}
+.cart-item-del{background:none;border:none;color:rgba(240,100,80,.55);cursor:pointer;font-size:18px;line-height:1;transition:color .2s;padding:0;flex-shrink:0}
+.cart-item-del:hover{color:rgba(240,100,80,1)}
+.cart-item-meta{font-size:11px;opacity:.38;margin-top:4px;line-height:1.6}
+.cart-item-upgrade{font-size:11px;color:var(--a);opacity:.85;margin-top:3px}
+.cart-item-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--b)}
+.cart-item-qty{display:flex;align-items:center;gap:8px}
+.cqb{width:28px;height:28px;border-radius:50%;background:rgba(255,107,0,.1);border:1px solid rgba(255,107,0,.25);color:var(--o);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;line-height:1;font-weight:700}
+.cqb:hover{background:var(--o);color:#fff}
+.cqn{font-family:'Playfair Display',serif;font-size:16px;min-width:22px;text-align:center}
+.cart-item-price{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--a)}
+/* Cart footer */
+.cart-foot{padding:14px 22px 18px;border-top:1px solid var(--b);flex-shrink:0}
+.cart-subtotal{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cart-subtotal-lbl{font-size:12px;opacity:.45;letter-spacing:.1em;text-transform:uppercase}
+.cart-subtotal-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--o)}
+.cart-checkout-btn{width:100%;padding:14px;background:var(--o);color:#fff;border:none;border-radius:100px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:background .3s,transform .2s;box-shadow:0 6px 24px rgba(255,107,0,.3)}
+.cart-checkout-btn:hover{background:#FF8C2A;transform:scale(1.02)}
+
+/* ═══════════════════════════════════
+   CHECKOUT MODAL
+═══════════════════════════════════ */
+#checkout-ov{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1000;opacity:0;pointer-events:none;transition:opacity .35s ease;display:flex;align-items:center;justify-content:center;padding:20px}
+#checkout-ov.open{opacity:1;pointer-events:all}
+#checkout-modal{background:#0f0f0f;border:1px solid var(--b);border-radius:24px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;transform:scale(.95) translateY(20px);transition:transform .4s cubic-bezier(.76,0,.24,1)}
+#checkout-ov.open #checkout-modal{transform:scale(1) translateY(0)}
+.co-head{padding:22px 26px 16px;border-bottom:1px solid var(--b);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#0f0f0f;z-index:2}
+.co-head h2{font-family:'Playfair Display',serif;font-size:21px;font-weight:700}
+.co-body{padding:20px 26px}
+.co-sec{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--o);margin:16px 0 10px;display:block}
+.co-sec:first-child{margin-top:0}
+/* Delivery picker */
+.delivery-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px}
+.delivery-opt{background:var(--card);border:1px solid var(--b);border-radius:12px;padding:16px;cursor:pointer;transition:all .25s;text-align:center}
+.delivery-opt:hover{border-color:rgba(255,107,0,.3)}
+.delivery-opt.sel{border-color:var(--o);background:rgba(255,107,0,.08)}
+.delivery-opt-icon{font-size:26px;margin-bottom:8px}
+.delivery-opt-title{font-size:14px;font-weight:600}
+.delivery-opt-sub{font-size:11px;opacity:.38;margin-top:3px}
+/* Address form — slides in */
+#co-address-form{display:none;border:1px solid rgba(255,107,0,.22);border-radius:12px;padding:16px;background:rgba(255,107,0,.04);margin-top:8px}
+#co-address-form.show{display:block}
+.co-field{margin-bottom:12px}
+.co-field label{display:block;font-size:10px;opacity:.45;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.co-field input,.co-field select,.co-field textarea{width:100%;background:var(--card);border:1px solid var(--b);border-radius:10px;padding:11px 13px;color:var(--c);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .3s}
+.co-field input:focus,.co-field select:focus{border-color:var(--o)}
+.co-field select option{background:#1a1a1a}
+.co-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* Saved address display */
+#co-addr-saved{display:none;background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2);border-radius:10px;padding:12px 14px;margin-top:8px;cursor:pointer;transition:border-color .3s}
+#co-addr-saved:hover{border-color:rgba(46,204,113,.45)}
+#co-addr-saved p{font-size:13px;line-height:1.7}
+#co-addr-saved small{font-size:11px;color:var(--green);margin-top:4px;display:block}
+/* Payment picker */
+.pay-opts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.pay-opt{padding:8px 14px;border-radius:10px;border:1px solid var(--b);font-size:12px;cursor:pointer;transition:all .25s;background:transparent;color:var(--c);display:flex;align-items:center;gap:6px}
+.pay-opt:hover{border-color:rgba(255,107,0,.3)}
+.pay-opt.sel{background:rgba(255,107,0,.1);border-color:var(--o);color:var(--o)}
+/* Order summary */
+.co-summary{background:var(--card);border-radius:12px;padding:14px;margin:8px 0}
+.co-sum-item{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;opacity:.7}
+.co-sum-item.total{font-size:14px;font-weight:600;opacity:1;padding-top:10px;border-top:1px solid var(--b);margin-top:6px}
+.co-sum-item.total span:last-child{color:var(--o)}
+/* Customer number */
+.co-num-box{background:linear-gradient(135deg,rgba(255,107,0,.15),rgba(232,160,32,.1));border:1px solid rgba(255,107,0,.3);border-radius:14px;padding:18px;text-align:center;margin-bottom:16px}
+.co-num-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.5;margin-bottom:6px}
+.co-num{font-family:'Playfair Display',serif;font-size:52px;font-weight:900;color:var(--o)}
+.co-num-sub{font-size:11px;opacity:.3;margin-top:4px}
+/* Submit */
+.co-submit{width:100%;padding:14px;background:var(--o);color:#fff;border:none;border-radius:100px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:background .3s,transform .2s;box-shadow:0 6px 24px rgba(255,107,0,.3);margin-top:8px}
+.co-submit:hover{background:#FF8C2A;transform:scale(1.02)}
+/* Success */
+#co-success{display:none;padding:36px 26px;text-align:center}
+#co-success.show{display:block}
+#co-success h3{font-family:'Playfair Display',serif;font-size:26px;margin-bottom:12px}
+#co-success p{opacity:.55;font-size:14px;line-height:1.8;margin-bottom:6px}
+#co-success .wa-btn{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:12px 24px;background:#25D366;color:#fff;border:none;border-radius:100px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;cursor:pointer;text-decoration:none}
+
+@media(max-width:768px){
+  nav{padding:12px 16px}.nav-links{display:none}
+  .story-grid,.loc-grid{grid-template-columns:1fr;gap:40px}
+  .gal-grid{grid-template-columns:1fr}
+  .fstage{gap:20px}.fi.side .ff{width:150px;height:150px}.fi.main .ff{width:220px;height:220px}
+  footer,.pband,.halal-band,.payment-band{flex-direction:column;text-align:center}
+  .imp-grid,.wr-row,.co-row,.delivery-grid,.bm-patty{grid-template-columns:1fr}
+  .vcards,.services-grid{grid-template-columns:1fr}
+  #cart-drawer{width:100vw}
+  #impressum,#story,#menu,#gallery,#hunger,#reviews,#locations,#order-cta,#vegan,#write-review,#services{padding-left:20px;padding-right:20px}
+}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<canvas id="orbs-canvas"></canvas>
+<div id="scroll-progress"></div>
+<div id="grain"></div>
+<div id="glow"></div>
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="intro-ring"></div><div class="intro-ring"></div><div class="intro-ring"></div>
+  <canvas id="intro-sparks"></canvas>
+  <div class="intro-content">
+    <svg id="intro-icon" viewBox="0 0 80 80" fill="none">
+      <ellipse cx="40" cy="22" rx="28" ry="13" fill="#D4900A"/>
+      <ellipse cx="40" cy="18" rx="20" ry="7" fill="#C07808" opacity=".45"/>
+      <ellipse cx="30" cy="16" rx="3" ry="1.5" fill="white" opacity=".5" transform="rotate(-15 30 16)"/>
+      <ellipse cx="40" cy="13" rx="3" ry="1.5" fill="white" opacity=".5"/>
+      <ellipse cx="50" cy="16" rx="3" ry="1.5" fill="white" opacity=".5" transform="rotate(15 50 16)"/>
+      <rect x="11" y="33" width="58" height="10" rx="5" fill="#4A1E08"/>
+      <rect x="10" y="40" width="60" height="8" rx="4" fill="#E8A020"/>
+      <path d="M10 48 Q16 52 22 48 Q30 54 38 48 Q46 54 54 48 Q62 52 70 48 L70 51 Q62 55 54 51 Q46 55 38 51 Q30 55 22 51 Q16 55 10 51Z" fill="#3DB838"/>
+      <rect x="10" y="56" width="60" height="14" rx="7" fill="#C8780A"/>
+    </svg>
+    <div class="intro-word"><span class="intro-half left">KELSTER</span><span class="intro-half right">BITE</span></div>
+    <div style="position:relative;display:inline-block"><div id="intro-line"></div></div>
+    <p id="intro-tagline">Bergstraße 31 · Kelsterbach · 100% Halal</p>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-logo sf">KB</div>
+  <div class="nav-links">
+    <a href="#" id="nav-menu-link">Menü</a>
+    <a href="#story">Story</a>
+    <a href="#services">Services</a>
+    <a href="#locations">Standort</a>
+    <a href="#impressum">Impressum</a>
+  </div>
+  <div class="nav-right">
+    <button id="cart-btn" onclick="openCart()">
+      <!-- Burger Box SVG -->
+      <svg width="24" height="24" viewBox="0 0 36 36" fill="none">
+        <rect x="5" y="19" width="26" height="12" rx="3" stroke="#F0EDE8" stroke-width="1.8"/>
+        <path d="M4 19C4 16 6.5 14 10 14H26C29.5 14 32 16 32 19" stroke="#F0EDE8" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <path d="M12 14C12 11 14.5 9 18 9C21.5 9 24 11 24 14Z" fill="#FF6B00"/>
+        <rect x="11" y="14" width="14" height="2" rx="1" fill="#E8A020"/>
+        <rect x="10.5" y="16" width="15" height="2" rx="1" fill="#5C2E00" opacity=".9"/>
+        <circle cx="15" cy="11" r="1" fill="white" opacity=".7"/>
+        <circle cx="18" cy="10" r="1" fill="white" opacity=".7"/>
+        <circle cx="21" cy="11" r="1" fill="white" opacity=".7"/>
+      </svg>
+      <span id="cart-count">0</span>
+    </button>
+    <a href="tel:+4915732002266" class="nav-phone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 3h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.09 10.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21 18v.08z"/></svg>
+      <span>+49 1573 2002266</span>
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="home">
+  <img id="hero-img" src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=2000&q=85" alt="Kelsterbite"/>
+  <div class="hvig"></div><div class="hfade"></div>
+  <div class="hero-c" id="hero-c">
+    <p class="hero-eye">Kelsterbach's bester Smash Burger</p>
+    <h1 class="hero-h1 sf">Kelster<br><em>bite.</em></h1>
+    <p class="hero-sub">Handgemacht. Unentschuldigt gut.<br>100% Halal. Der Hype ist real.</p>
+    <div class="hero-btns">
+      <button class="btn-p" onclick="openBuilder()">🛒 Jetzt Bestellen</button>
+    </div>
+  </div>
+  <div class="scroll-h" id="scroll-h"><span>Scroll</span><div class="sbar"></div></div>
+</section>
+
+<!-- HALAL -->
+<div class="halal-band rev">
+  <div class="halal-video-bg">
+    <video autoplay muted loop playsinline>
+      <source src="https://assets.mixkit.co/videos/preview/mixkit-cows-grazing-on-a-lush-meadow-1239-large.mp4" type="video/mp4"/>
+    </video>
+  </div>
+  <div class="halal-content">
+    <div class="halal-icon">☪️</div>
+    <div class="halal-text">
+      <h3>100% Halal Zertifiziert</h3>
+      <p>Alle Fleischprodukte halal-zertifiziert — frisch, ehrlich, nach islamischen Ernährungsvorschriften.</p>
+    </div>
+    <span class="halal-cert">✓ Halal Certified</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-i">
+    <div class="rev"><div class="snum sf" data-target="4.9" data-suffix="★">4.9★</div><div class="slbl">Google Bewertung</div></div>
+    <div class="rev d1"><div class="snum sf" data-target="100" data-suffix="%">100%</div><div class="slbl">Halal & Frisch</div></div>
+    <div class="rev d2"><div class="snum sf" data-target="120" data-suffix="+">120+</div><div class="slbl">Google Bewertungen</div></div>
+    <div class="rev d3"><div class="snum sf" data-target="2023" data-suffix="">2023</div><div class="slbl">Gegründet</div></div>
+  </div>
+</div>
+
+<!-- PAYMENT BAND -->
+<div class="payment-band rev">
+  <div class="payment-inner">
+    <p class="payment-title sf">Bezahlung</p>
+    <div class="payment-methods">
+      <div class="pay-pill"><span class="pay-pill-icon">💳</span>Kreditkarte</div>
+      <div class="pay-pill"><span class="pay-pill-icon">💶</span>Bargeld</div>
+      <div class="pay-pill"><span class="pay-pill-icon">📱</span>Apple Pay</div>
+      <div class="pay-pill"><span class="pay-pill-icon">📱</span>Google Pay</div>
+      <div class="pay-pill"><span class="pay-pill-icon">🏦</span>EC-Karte</div>
+      <div class="pay-pill"><span class="pay-pill-icon">📲</span>PayPal</div>
+      <div class="pay-pill pay-all">✓ Alle Zahlungen akzeptiert</div>
+    </div>
+  </div>
+</div>
+
+<!-- PHONE BAND -->
+<div class="pband rev">
+  <div class="pband-l">
+    <p class="pband-eye">Hunger? Ruf uns an!</p>
+    <h2 class="pband-title sf">Jetzt Anrufen<br>und Bestellen.</h2>
+    <p class="pband-sub">Wir nehmen deine Bestellung gerne telefonisch entgegen.</p>
+  </div>
+  <div class="pband-r">
+    <a href="tel:+4915732002266" class="pnum sf">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:32px;height:32px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 3h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.09 10.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21 18v.08z"/></svg>
+      +49 1573 2002266
+    </a>
+    <span class="pbadge">Mo–Mi, Fr–So geöffnet</span>
+  </div>
+</div>
+
+<!-- STORY -->
+<section id="story">
+  <div class="story-grid">
+    <div class="rev-l">
+      <p class="sec-eye">Unsere Geschichte</p>
+      <h2 class="story-h sf">Von einem kleinen<br><em>Van zur Stadt.</em></h2>
+      <div class="story-div"></div>
+      <p class="story-p">Kelsterbite begann mit einem kleinen Van und einer großen Leidenschaft für den perfekten Smash Burger. Frisches halal-zertifiziertes Fleisch, heiße Platten, echte Handarbeit — das war die Idee von Anfang an.</p>
+      <p class="story-p">Mit dem Wunsch, dass jeder in Kelsterbach Kelsterbite kennenlernt, haben wir uns entschieden zu wachsen und einen festen Standort zu eröffnen. Bergstraße 31 — hier ist unser Zuhause.</p>
+    </div>
+    <div class="story-img rev-r">
+      <img src="https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800&q=80" alt="Kelsterbite"/>
+      <div class="tbadge"><div class="tbadge-n sf">🚐</div><div class="tbadge-l">Der Anfang</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- VEGAN -->
+<section id="vegan">
+  <div class="vbar-top"></div>
+  <div class="vbody">
+    <div class="vglow"></div>
+    <p class="sec-eye rev" style="position:relative;z-index:2;color:var(--green)">Für Alle</p>
+    <h2 class="vtitle rev" style="position:relative;z-index:2;">Veggie &<br>Vegan.</h2>
+    <p class="vsub rev" style="position:relative;z-index:2;">Gutes Essen für alle. Unser Mushroom Smash und alle pflanzlichen Optionen werden genauso leidenschaftlich gemacht wie der Rest.</p>
+    <div class="vleaf-badge rev"><span class="vleaf-icon">🌿</span><div class="vleaf-text"><h4>Vegan & Vegetarisch</h4><p>Pflanzliche Optionen — frisch, ehrlich, lecker</p></div></div>
+    <div class="vcards rev" style="margin-top:48px;">
+      <div class="vcard"><div class="vcard-icon">🍄</div><h5>Mushroom Smash</h5><p>Plant-Based Patty · Schweizer Käse · Waldpilz-Duxelles · Kräutermayo</p></div>
+      <div class="vcard"><div class="vcard-icon">🥗</div><h5>Frische Zutaten</h5><p>Salat, Tomate und Gemüse täglich frisch — bei jedem Burger und Baguette.</p></div>
+      <div class="vcard"><div class="vcard-icon">☪️</div><h5>100% Halal</h5><p>Alle Fleischprodukte halal-zertifiziert. Transparent und ehrlich.</p></div>
+    </div>
+  </div>
+  <div class="vbar-bot"></div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div style="max-width:1100px;margin:0 auto;" class="sec-head rev">
+    <p class="sec-eye">Was wir bieten</p>
+    <h2 class="sec-h sf">Unsere Services</h2>
+    <p style="font-size:15px;opacity:.45;margin-top:12px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.7;">Von Events bis zum Parkplatz — wir sind für dich da.</p>
+  </div>
+  <div class="services-grid stagger">
+    <div class="svc-card rev"><div class="svc-icon">🚐</div><div class="svc-title sf">Catering & Events</div><div class="svc-desc">Kelsterbite kommt gerne zu deinem Event! Firmenfeiern, Geburtstage, Hochzeiten oder Stadtfeste — wir bringen frische Smash Burger direkt zu dir. Einfach anrufen und alles besprechen.</div></div>
+    <div class="svc-card rev d1"><div class="svc-icon">🅿️</div><div class="svc-title sf">Kostenloser Parkplatz</div><div class="svc-desc">Direkt vor dem Laden stehen kostenlose Parkplätze zur Verfügung. Komm einfach vorbei — entspannt parken, entspannt genießen.</div></div>
+    <div class="svc-card rev d2"><div class="svc-icon">🚀</div><div class="svc-title sf">Schnelle Zubereitung</div><div class="svc-desc">Frisch auf Bestellung — aber nicht langsam. Jeder Burger wird direkt für dich gepresst. Qualität ohne lange Wartezeit.</div></div>
+    <div class="svc-card rev"><div class="svc-icon">📦</div><div class="svc-title sf">Takeaway & Lieferung</div><div class="svc-desc">Hol dir dein Essen ab oder lass es zu dir liefern. Beides einfach beim Bestellen auswählen. Lieferung gegen geringe Gebühr.</div></div>
+    <div class="svc-card rev d1"><div class="svc-icon">👨‍👩‍👧‍👦</div><div class="svc-title sf">Familienfreundlich</div><div class="svc-desc">Ein Ort für alle. Familien, Gruppen, Einzelpersonen — bei uns ist jeder willkommen. Herzliche Atmosphäre garantiert.</div></div>
+    <div class="svc-card rev d2"><div class="svc-icon">💳</div><div class="svc-title sf">Alle Zahlungsmethoden</div><div class="svc-desc">Bargeld, Karte, Apple Pay, Google Pay, PayPal — bezahl wie du möchtest. Digital oder physisch, alles akzeptiert.</div></div>
+  </div>
+</section>
+
+<!-- MENU -->
+<section id="menu">
+  <div class="sec-head rev">
+    <p class="sec-eye">Was wir machen</p>
+    <h2 class="sec-h sf">Das Menü</h2>
+    <p style="font-size:13px;opacity:.45;margin-top:12px;">Menü-Upgrade: +5€ (Fritz Getränk + Pommes oder Süßkartoffel)</p>
+  </div>
+  <div style="text-align:center;margin-bottom:32px;" class="rev">
+    <button class="btn-p" onclick="openBuilder()" style="font-size:14px;padding:16px 40px;box-shadow:0 8px 28px rgba(255,107,0,.38);">🛒 Jetzt Bestellen</button>
+    <p style="font-size:11px;opacity:.32;margin-top:10px;">Wähle Artikel, Patty-Größe, Menü-Upgrade & Extras</p>
+  </div>
+  <div class="cat-tabs rev" id="cat-tabs">
+    <button class="cat-tab active" onclick="showCat('burger',event)">🍔 Burger</button>
+    <button class="cat-tab" onclick="showCat('baguette',event)">🌯 Baguettes</button>
+    <button class="cat-tab" onclick="showCat('snacks',event)">🍟 Snacks</button>
+    <button class="cat-tab" onclick="showCat('drinks',event)">🥤 Getränke</button>
+    <button class="cat-tab" onclick="showCat('extras',event)">➕ Extras</button>
+  </div>
+
+  <!-- BURGER -->
+  <div class="cat-section visible" id="cat-burger">
+    <div class="cat-head rev"><span class="cat-emoji">🍔</span><h3 class="cat-title sf">Smash Burger</h3><div class="cat-note">1 Patty / 2 Patty</div></div>
+    <div class="menu-grid">
+      <div class="menu-item featured rev"><div class="mi-img"><img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80" alt="El Classico" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#FF6B00;border-color:#FF6B0055;background:#FF6B0018;">Bestseller</span></div><p class="mi-name sf">EL CLÁSSICO</p><div class="mi-ingr"><span class="mi-chip">Beef</span><span class="mi-chip">American Cheese</span><span class="mi-chip">Pickles</span><span class="mi-chip">Onion</span><span class="mi-chip">Ketchup</span><span class="mi-chip">Mustard</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">6€</span><span class="mi-price-label">1 Patty</span></div><div class="mi-price-single"><span class="mi-price-num sf" style="font-size:17px;color:var(--a)">9€</span><span class="mi-price-label">2 Patty</span></div></div><button class="mi-order-btn" onclick="openBuilder('EL CLÁSSICO',6,9)">Bestellen</button></div></div></div>
+      <div class="menu-item featured rev d1"><div class="mi-img"><img src="https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=400&q=80" alt="Muuh York" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#D4A017;border-color:#D4A01755;background:#D4A01718;">Favorit</span></div><p class="mi-name sf">MUUH YORK</p><div class="mi-ingr"><span class="mi-chip">Beef</span><span class="mi-chip">American Cheese</span><span class="mi-chip">Beef Bacon</span><span class="mi-chip">Salat</span><span class="mi-chip">Tomate</span><span class="mi-chip">Pickles</span><span class="mi-chip">Onion</span><span class="mi-chip">Ketchup</span><span class="mi-chip">Mustard</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">8€</span><span class="mi-price-label">1 Patty</span></div><div class="mi-price-single"><span class="mi-price-num sf" style="font-size:17px;color:var(--a)">11€</span><span class="mi-price-label">2 Patty</span></div></div><button class="mi-order-btn" onclick="openBuilder('MUUH YORK',8,11)">Bestellen</button></div></div></div>
+      <div class="menu-item featured rev d2"><div class="mi-img"><img src="https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400&q=80" alt="Smoky Joe" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#888;border-color:#88855;background:#88811;">Burger</span></div><p class="mi-name sf">SMOKY JOE</p><div class="mi-ingr"><span class="mi-chip">Beef</span><span class="mi-chip">American Cheese</span><span class="mi-chip">Salat</span><span class="mi-chip">Tomate</span><span class="mi-chip">Pickles</span><span class="mi-chip">Karamellzwiebeln</span><span class="mi-chip">Smoky Sauce</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">8€</span><span class="mi-price-label">1 Patty</span></div><div class="mi-price-single"><span class="mi-price-num sf" style="font-size:17px;color:var(--a)">11€</span><span class="mi-price-label">2 Patty</span></div></div><button class="mi-order-btn" onclick="openBuilder('SMOKY JOE',8,11)">Bestellen</button></div></div></div>
+    </div>
+    <button class="show-more-btn" id="burger-more-btn" onclick="toggleMore('burger')">Mehr anzeigen <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:16px;height:16px"><path d="m6 9 6 6 6-6"/></svg></button>
+    <div class="extra-items menu-grid" id="burger-extra" style="margin-top:16px;">
+      <div class="menu-item rev"><div class="mi-img"><img src="https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&q=80" alt="Eggmek" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#D4A017;border-color:#D4A01755;background:#D4A01718;">Burger</span></div><p class="mi-name sf">EGGMEK</p><div class="mi-ingr"><span class="mi-chip">Beef</span><span class="mi-chip">American Cheese</span><span class="mi-chip">Pickles</span><span class="mi-chip">Onion</span><span class="mi-chip">Egg</span><span class="mi-chip">Sesam</span><span class="mi-chip">Ketchup</span><span class="mi-chip">Mustard</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">9€</span><span class="mi-price-label">1 Patty</span></div><div class="mi-price-single"><span class="mi-price-num sf" style="font-size:17px;color:var(--a)">12€</span><span class="mi-price-label">2 Patty</span></div></div><button class="mi-order-btn" onclick="openBuilder('EGGMEK',9,12)">Bestellen</button></div></div></div>
+      <div class="menu-item rev d1"><div class="mi-img"><img src="https://images.unsplash.com/photo-1562802378-063ec186a863?w=400&q=80" alt="Chickeriki" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#888;border-color:#88855;background:#88811;">Chicken</span></div><p class="mi-name sf">CHICKERIKI</p><div class="mi-ingr"><span class="mi-chip">Chicken</span><span class="mi-chip">American Cheese</span><span class="mi-chip">Salat</span><span class="mi-chip">Tomate</span><span class="mi-chip">House Sauce</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">7€</span><span class="mi-price-label">1 Patty</span></div><div class="mi-price-single"><span class="mi-price-num sf" style="font-size:17px;color:var(--a)">10€</span><span class="mi-price-label">2 Patty</span></div></div><button class="mi-order-btn" onclick="openBuilder('CHICKERIKI',7,10)">Bestellen</button></div></div></div>
+      <div class="menu-item rev d2"><div class="mi-img"><img src="https://images.unsplash.com/photo-1610614819513-58e34989848b?w=400&q=80" alt="Krosse Krabbe" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#C0392B;border-color:#C0392B55;background:#C0392B18;">🦀 Aktion</span></div><p class="mi-name sf">KROSSE KRABBE</p><div class="mi-ingr"><span class="mi-chip">Krabben</span><span class="mi-chip">Salat</span><span class="mi-chip">Tomate</span><span class="mi-chip">House Sauce</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">6€</span><span class="mi-price-label">Aktion</span></div></div><button class="mi-order-btn" onclick="openBuilder('KROSSE KRABBE',6,null)">Bestellen</button></div></div></div>
+    </div>
+  </div>
+
+  <!-- BAGUETTE -->
+  <div class="cat-section" id="cat-baguette">
+    <div class="cat-head rev"><span class="cat-emoji">🌯</span><h3 class="cat-title sf">Baguettes</h3><div class="cat-note">Menü +5€ (Fritz + Pommes)</div></div>
+    <div class="menu-grid">
+      <div class="menu-item rev"><div class="mi-img"><img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80" alt="Philly" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#FF6B00;border-color:#FF6B0055;background:#FF6B0018;">Bestseller</span></div><p class="mi-name sf">PHILLY CHEESE STEAK</p><div class="mi-ingr"><span class="mi-chip">Beef</span><span class="mi-chip">Onion</span><span class="mi-chip">Cheese Sauce</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">13€</span></div></div><button class="mi-order-btn" onclick="openBuilder('PHILLY CHEESE STEAK',13,null)">Bestellen</button></div></div></div>
+      <div class="menu-item rev d1"><div class="mi-img"><img src="https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400&q=80" alt="NY Chopped" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#888;border-color:#88855;background:#88811;">Baguette</span></div><p class="mi-name sf">NY-CHOPPED CHEESE</p><div class="mi-ingr"><span class="mi-chip">Beef</span><span class="mi-chip">Cheese</span><span class="mi-chip">Paprika</span><span class="mi-chip">Salat</span><span class="mi-chip">Tomate</span><span class="mi-chip">Ketchup</span><span class="mi-chip">Mayo</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">9€</span></div></div><button class="mi-order-btn" onclick="openBuilder('NY-CHOPPED CHEESE',9,null)">Bestellen</button></div></div></div>
+      <div class="menu-item rev d2"><div class="mi-img"><img src="https://images.unsplash.com/photo-1562802378-063ec186a863?w=400&q=80" alt="Chicken Chopped" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#888;border-color:#88855;background:#88811;">Chicken</span></div><p class="mi-name sf">CHICKEN-CHOPPED CHEESE</p><div class="mi-ingr"><span class="mi-chip">Chicken</span><span class="mi-chip">Cheese</span><span class="mi-chip">Onion</span><span class="mi-chip">Paprika</span><span class="mi-chip">Salat</span><span class="mi-chip">Tomate</span><span class="mi-chip">House Sauce</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">9€</span></div></div><button class="mi-order-btn" onclick="openBuilder('CHICKEN-CHOPPED CHEESE',9,null)">Bestellen</button></div></div></div>
+      <div class="menu-item rev"><div class="mi-img"><img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80" alt="Mergues" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#D4A017;border-color:#D4A01755;background:#D4A01718;">Baguette</span></div><p class="mi-name sf">MERGUES</p><div class="mi-ingr"><span class="mi-chip">Merguez</span><span class="mi-chip">Fries</span><span class="mi-chip">Tomate</span><span class="mi-chip">Gemüse-Sauce</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">9€</span></div></div><button class="mi-order-btn" onclick="openBuilder('MERGUES',9,null)">Bestellen</button></div></div></div>
+      <div class="menu-item rev d1"><div class="mi-img"><img src="https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400&q=80" alt="Tiger Shrimps" loading="lazy"/></div><div class="mi-body"><div class="mi-badges"><span class="mi-tag" style="color:#27AE60;border-color:#27AE6055;background:#27AE6018;">🦐 Seafood</span></div><p class="mi-name sf">TIGER SHRIMPS</p><div class="mi-ingr"><span class="mi-chip">Shrimps</span><span class="mi-chip">Fries</span><span class="mi-chip">Salat</span><span class="mi-chip">Garlic Mayo</span></div><div class="mi-foot"><div class="mi-price-wrap"><div class="mi-price-single"><span class="mi-price-num sf">9,90€</span></div></div><button class="mi-order-btn" onclick="openBuilder('TIGER SHRIMPS',9.9,null)">Bestellen</button></div></div></div>
+    </div>
+    <div class="menu-note"><span>👉</span>Menü-Upgrade: +5€ inkl. Fritz Getränk & Pommes oder Süßkartoffel + Ketchup/Mayo</div>
+  </div>
+
+  <!-- SNACKS -->
+  <div class="cat-section" id="cat-snacks">
+    <div class="cat-head rev"><span class="cat-emoji">🍟</span><h3 class="cat-title sf">Snacks & Beilagen</h3></div>
+    <div class="simple-grid">
+      <div class="si-item rev"><div><p class="si-name">French Fries</p><p class="si-sub">Knusprig dünn</p></div><span class="si-price sf">3,90€</span></div>
+      <div class="si-item rev d1"><div><p class="si-name">Sweet Potato Fries</p><p class="si-sub">Süßkartoffel</p></div><span class="si-price sf">4,50€</span></div>
+      <div class="si-item rev d2"><div><p class="si-name">Coleslaw</p><p class="si-sub">Hausgemacht</p></div><span class="si-price sf">4,00€</span></div>
+      <div class="si-item rev"><div><p class="si-name">Crab Bites</p><p class="si-sub">Pro Stück</p></div><span class="si-price sf">1,00€</span></div>
+      <div class="si-item rev d1"><div><p class="si-name">Calamari mit Aioli</p></div><span class="si-price sf">6,00€</span></div>
+    </div>
+  </div>
+
+  <!-- DRINKS -->
+  <div class="cat-section" id="cat-drinks">
+    <div class="cat-head rev"><span class="cat-emoji">🥤</span><h3 class="cat-title sf">Getränke</h3><div class="cat-note">Fritz Kola & Red Bull</div></div>
+    <div class="simple-grid">
+      <div class="si-item rev"><div><p class="si-name">Fritz-Kola</p><p class="si-sub">0,33l · Classic</p></div><span class="si-price sf">2,50€</span></div>
+      <div class="si-item rev d1"><div><p class="si-name">Fritz-Kola Zitrone</p><p class="si-sub">0,33l</p></div><span class="si-price sf">2,50€</span></div>
+      <div class="si-item rev d2"><div><p class="si-name">Fritz-Limo Orange</p><p class="si-sub">0,33l</p></div><span class="si-price sf">2,50€</span></div>
+      <div class="si-item rev"><div><p class="si-name">Fritz-Limo Himbeer</p><p class="si-sub">0,33l</p></div><span class="si-price sf">2,50€</span></div>
+      <div class="si-item rev d1"><div><p class="si-name">Fritz Apfelschorle</p><p class="si-sub">0,33l</p></div><span class="si-price sf">2,50€</span></div>
+      <div class="si-item rev d2"><div><p class="si-name">Fritz Wasser</p><p class="si-sub">0,5l · Still</p></div><span class="si-price sf">2,00€</span></div>
+      <div class="si-item rev" style="border-color:rgba(200,16,46,.3);background:rgba(200,16,46,.04)"><div><p class="si-name" style="color:#e01530">Red Bull Original</p><p class="si-sub">0,25l · Energy</p></div><span class="si-price sf">3,50€</span></div>
+      <div class="si-item rev d1" style="border-color:rgba(200,16,46,.3);background:rgba(200,16,46,.04)"><div><p class="si-name" style="color:#e01530">Red Bull Sugarfree</p><p class="si-sub">0,25l · Energy</p></div><span class="si-price sf">3,50€</span></div>
+      <div class="si-item rev d2" style="border-color:rgba(200,16,46,.3);background:rgba(200,16,46,.04)"><div><p class="si-name" style="color:#e01530">Red Bull Watermelon</p><p class="si-sub">0,25l · Energy</p></div><span class="si-price sf">3,50€</span></div>
+    </div>
+  </div>
+
+  <!-- EXTRAS -->
+  <div class="cat-section" id="cat-extras">
+    <div class="cat-head rev"><span class="cat-emoji">➕</span><h3 class="cat-title sf">Extras & Toppings</h3></div>
+    <p class="sec-eye" style="margin-bottom:14px;max-width:1100px;margin-left:auto;margin-right:auto;">Fleisch & Basics</p>
+    <div class="simple-grid" style="margin-bottom:28px;max-width:1100px;margin-left:auto;margin-right:auto;">
+      <div class="si-item rev"><div><p class="si-name">Beef Bacon</p></div><span class="si-price sf">2,00€</span></div>
+      <div class="si-item rev d1"><div><p class="si-name">Extra Patty</p></div><span class="si-price sf">3,00€</span></div>
+      <div class="si-item rev d2"><div><p class="si-name">Egg</p></div><span class="si-price sf">1,50€</span></div>
+    </div>
+    <p class="sec-eye" style="margin-bottom:14px;max-width:1100px;margin-left:auto;margin-right:auto;">Saucen & Toppings</p>
+    <div class="simple-grid" style="max-width:1100px;margin-left:auto;margin-right:auto;">
+      <div class="si-item rev"><div><p class="si-name">Sauce</p></div><span class="si-price sf">2,00€</span></div>
+      <div class="si-item rev d1"><div><p class="si-name">Caramel Onion</p></div><span class="si-price sf">1,50€</span></div>
+      <div class="si-item rev d2"><div><p class="si-name">Jalapeños</p></div><span class="si-price sf">1,00€</span></div>
+      <div class="si-item rev"><div><p class="si-name">American Cheese</p></div><span class="si-price sf">1,50€</span></div>
+      <div class="si-item rev d1"><div><p class="si-name">Chili Cheese</p></div><span class="si-price sf">3,00€</span></div>
+      <div class="si-item rev d2"><div><p class="si-name">Truffle Mayo</p></div><span class="si-price sf">2,00€</span></div>
+      <div class="si-item rev"><div><p class="si-name">Extra Sauce</p></div><span class="si-price sf">0,50€</span></div>
+      <div class="si-item rev d1"><div><p class="si-name">Yummy</p></div><span class="si-price sf">0,70€</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="sec-head rev"><p class="sec-eye">Einfach gut</p><h2 class="sec-h sf">Bilder sagen mehr</h2></div>
+  <div class="gal-grid">
+    <div class="gi rev"><img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&q=80" alt="" style="min-height:340px;"/><div class="gi-overlay"></div><div class="gi-label"><span>El Clássico</span><small>Unser Signature</small></div></div>
+    <div class="gi rev d1" style="aspect-ratio:1;"><img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&q=80" alt=""/><div class="gi-overlay"></div><div class="gi-label"><span>Handgemacht</span><small>Täglich frisch</small></div></div>
+    <div class="gi rev d2" style="aspect-ratio:1;"><img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=600&q=80" alt=""/><div class="gi-overlay"></div><div class="gi-label"><span>Frisch & Heiß</span><small>Immer auf Bestellung</small></div></div>
+  </div>
+</section>
+
+<!-- HUNGER KICK -->
+<section id="hunger">
+  <div class="hglow"></div>
+  <div class="hhead rev"><p class="heye">Du weißt, dass du es willst</p><h2 class="htitle sf">Der<br><em>Hunger Kick.</em></h2></div>
+  <div class="fstage">
+    <div class="fi side rev"><div class="ff"><img src="https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&q=90" alt="Pommes" style="width:210px;height:210px;"/></div><p class="flbl sf">Kelster Fries</p><p class="fsub">Knusprig · Salzig · Sucht</p></div>
+    <div class="fi main rev d1">
+      <div style="position:relative;"><div class="fglow"></div><div class="ptag"><div class="ptag-n sf">ab 6€</div><div class="ptag-l">El Clássico</div></div><div class="ff"><img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=700&q=90" alt="Burger" style="width:310px;height:310px;"/></div></div>
+      <p class="flbl sf">El Clássico</p><p class="fsub">Unser Signature Burger</p>
+    </div>
+    <div class="fi sauce rev d2"><div class="ff"><img src="https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=500&q=90" alt="Sauce" style="width:210px;height:210px;"/></div><p class="flbl sf">Smash Sauce</p><p class="fsub">Geheim · Rauchig · Süchtig</p></div>
+  </div>
+  <div class="hcta rev"><p>Dein Magen hat bereits entschieden.</p>
+    <button class="btn-p" onclick="openBuilder()" style="box-shadow:0 8px 32px rgba(255,107,0,.38);font-size:14px;padding:15px 40px;">🛒 Jetzt Bestellen</button>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews">
+  <div class="sec-head rev"><p class="sec-eye">Was Leute sagen</p><h2 class="sec-h sf">Echte Stimmen</h2>
+    <div class="rrating"><span class="stars-big">★★★★★</span><span>4.9 · 120+ Bewertungen</span></div>
+  </div>
+  <div class="rcarousel rev" id="rcarousel">
+    <div class="rcard active"><div class="rquote">"</div><p class="rtxt">Bester Smash Burger in der Region. Punkt. Kein Vergleich. Man merkt sofort die Qualität — frisch, heiß, perfekt.</p><div class="rfoot"><div><p class="rname">Caden M.</p><p class="rloc">Frankfurt</p></div><div style="text-align:right"><div class="rstars">★★★★★</div><span class="rdate">März 2025</span></div></div></div>
+    <div class="rcard"><div class="rquote">"</div><p class="rtxt">Selten einen so netten Betreiber getroffen. Extrem lecker, frische Zutaten und schnell serviert. Wir kommen wieder!</p><div class="rfoot"><div><p class="rname">Jens N.</p><p class="rloc">Frankfurt</p></div><div style="text-align:right"><div class="rstars">★★★★★</div><span class="rdate">Feb 2025</span></div></div></div>
+    <div class="rcard"><div class="rquote">"</div><p class="rtxt">Man merkt sofort, dass der Besitzer liebt was er tut. Alles frisch, liebevoll zubereitet. Der Kaffee war der Hammer!</p><div class="rfoot"><div><p class="rname">Denisa C.</p><p class="rloc">Kelsterbach</p></div><div style="text-align:right"><div class="rstars">★★★★★</div><span class="rdate">Jan 2025</span></div></div></div>
+    <div class="rcard"><div class="rquote">"</div><p class="rtxt">Ein kleiner modern eingerichteter Laden. Alles frisch und liebevoll zubereitet. Wer leckeres Essen will ist hier genau richtig.</p><div class="rfoot"><div><p class="rname">King K.</p><p class="rloc">Frankfurt</p></div><div style="text-align:right"><div class="rstars">★★★★★</div><span class="rdate">Dez 2024</span></div></div></div>
+  </div>
+  <div class="rdots" id="rdots">
+    <div class="rdot active" onclick="goTo(0)"></div><div class="rdot" onclick="goTo(1)"></div>
+    <div class="rdot" onclick="goTo(2)"></div><div class="rdot" onclick="goTo(3)"></div>
+  </div>
+  <a href="https://www.google.com/maps/search/Kelsterbite+Smash+Burger+Kelsterbach" target="_blank" rel="noopener" class="more-reviews-btn">⭐ Mehr Bewertungen auf Google →</a>
+</section>
+
+<!-- WRITE REVIEW -->
+<section id="write-review">
+  <div class="wr-inner">
+    <div class="wr-head rev">
+      <h2 class="sf">Deine Meinung zählt.</h2>
+      <p>Hat dir Kelsterbite gefallen? Deine Bewertung erscheint direkt auf Google Maps.</p>
+    </div>
+    <div class="wr-redirect-note rev">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Deine Bewertung wird direkt auf <strong>Google Maps</strong> veröffentlicht — so sehen sie alle Gäste.</span>
+    </div>
+    <div class="star-picker rev" id="star-picker">
+      <span class="star-pick active" data-v="1" onclick="setStar(1)">★</span>
+      <span class="star-pick active" data-v="2" onclick="setStar(2)">★</span>
+      <span class="star-pick active" data-v="3" onclick="setStar(3)">★</span>
+      <span class="star-pick active" data-v="4" onclick="setStar(4)">★</span>
+      <span class="star-pick active" data-v="5" onclick="setStar(5)">★</span>
+    </div>
+    <div class="wr-form rev">
+      <div class="wr-row">
+        <div class="wr-field"><label>Dein Name</label><input type="text" id="wr-name" placeholder="Max M."/></div>
+        <div class="wr-field"><label>Datum</label><input type="text" id="wr-date" readonly/></div>
+      </div>
+      <div class="wr-field"><label>Deine Bewertung</label><textarea id="wr-text" placeholder="Was hat dir gefallen? Was war dein Lieblingsgericht?"></textarea></div>
+      <div class="photo-upload">
+        <input type="file" accept="image/*" multiple id="wr-photos" onchange="handlePhotos(this)"/>
+        <div class="photo-upload-icon">📷</div>
+        <p>Fotos hinzufügen (optional)</p>
+        <div class="photo-preview" id="photo-preview"></div>
+      </div>
+      <button class="wr-submit" onclick="submitReview()">⭐ Bewertung auf Google abgeben →</button>
+    </div>
+    <div class="wr-success" id="wr-success">
+      <h3>Danke! 🎉</h3>
+      <p>Du wirst jetzt zu Google weitergeleitet um deine Bewertung zu veröffentlichen.</p>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATIONS -->
+<section id="locations">
+  <div class="loc-grid">
+    <div class="rev-l">
+      <p class="sec-eye">Wo zu finden</p>
+      <h2 class="story-h sf" style="margin-bottom:28px;">Unser<br><em style="color:var(--o)">Zuhause.</em></h2>
+      <div class="loc-card">
+        <span class="loc-badge">Hauptstandort</span>
+        <p class="loc-name sf">Kelsterbite Smash Burger</p>
+        <p class="loc-addr">Bergstraße 31, 65451 Kelsterbach</p>
+        <div class="loc-hrs">
+          <span class="loc-day">Mo – Mi</span><span class="loc-time">11:00 – 22:00 Uhr</span>
+          <span class="loc-day">Donnerstag</span><span class="loc-closed">Ruhetag — geschlossen</span>
+          <span class="loc-day">Freitag</span><span class="loc-time">11:00 – 22:00 Uhr</span>
+          <span class="loc-day">Sa – So</span><span class="loc-time">11:00 – 22:00 Uhr</span>
+        </div>
+        <a href="tel:+4915732002266" style="display:flex;align-items:center;gap:8px;margin-top:16px;color:var(--o);text-decoration:none;font-size:14px;font-weight:600;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 3h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.09 10.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21 18v.08z"/></svg>
+          +49 1573 2002266
+        </a>
+      </div>
+    </div>
+    <div class="loc-img rev-r">
+      <!-- ✏️ Ersetze mit eigenem Foto: src="DEIN_FOTO_LINK" -->
+      <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=80" alt="Kelsterbite"/>
+      <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(10,10,10,.9),transparent);padding:20px 22px;border-radius:0 0 18px 18px;">
+        <p style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;">Kelsterbite Smash Burger</p>
+        <p style="font-size:12px;opacity:.55;margin-top:3px;">Bergstraße 31 · 65451 Kelsterbach</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="order-cta">
+  <div class="order-glow"></div>
+  <div style="position:relative;z-index:2;" class="rev">
+    <p class="order-eye">Hunger? Los gehts.</p>
+    <h2 class="order-h sf">Jetzt<br><em>bestellen.</em></h2>
+    <p class="order-sub">Online bestellen oder anrufen — wir machen's fertig.</p>
+  </div>
+  <div class="order-btns rev">
+    <button class="btn-p" onclick="openBuilder()" style="font-size:15px;padding:16px 40px;box-shadow:0 8px 32px rgba(255,107,0,.38);">🛒 Jetzt Bestellen</button>
+    <a href="tel:+4915732002266" class="btn-p" style="background:#1a1a1a;border:1px solid rgba(255,107,0,.3);font-size:15px;padding:16px 36px;">📞 Anrufen</a>
+    <a href="https://maps.google.com/?q=Bergstrasse+31,+65451+Kelsterbach" target="_blank" class="btn-o">Route starten →</a>
+  </div>
+</section>
+
+<!-- IMPRESSUM -->
+<section id="impressum">
+  <div class="imp-inner">
+    <h2 class="imp-h sf rev">Impressum</h2>
+    <div class="imp-grid">
+      <div class="imp-sec rev"><h3>Angaben gemäß § 5 TMG</h3><p>Kelsterbite Smash Burger</p><p>Bergstraße 31</p><p>65451 Kelsterbach</p><p>Deutschland</p></div>
+      <div class="imp-sec rev d1"><h3>Kontakt</h3><a href="tel:+4915732002266">+49 1573 2002266</a><a href="/cdn-cgi/l/email-protection#d1bab4bda2a5b4a3b3b8a5b491b6bcb0b8bdffb2bebc"><span class="__cf_email__" data-cfemail="81eae4edf2f5e4f3e3e8f5e4c1e6ece0e8edafe2eeec">[email&#160;protected]</span></a></div>
+      <div class="imp-sec rev"><h3>Verantwortlich</h3><p>Abdesslam Asdufan</p><p style="font-size:12px;opacity:.4;margin-top:4px;">Gemäß § 18 Abs. 2 MStV</p></div>
+      <div class="imp-sec rev d1"><h3>Haftungsausschluss</h3><p>Inhalte mit größter Sorgfalt erstellt. Keine Gewähr für Richtigkeit oder Vollständigkeit.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="flogo sf">KELSTERBITE</div>
+  <p class="fcopy">© <span id="year"></span> · Bergstraße 31, 65451 Kelsterbach · 100% Halal</p>
+  <div class="flinks">
+    <a href="https://www.instagram.com/kelsterbite/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram</a>
+    <a href="https://www.tiktok.com/@kelsterbite" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>TikTok</a>
+    <a href="#impressum" style="opacity:.28;">Impressum</a>
+  </div>
+</footer>
+
+<!-- MENU POSTER MODAL -->
+<div id="poster-ov">
+  <div id="poster-inner">
+    <div class="poster-head">
+      <div><h2 class="sf">Das Menü</h2><p>Alle Preise · 1 Patty / 2 Patty · Menü +5€ (Fritz + Pommes)</p></div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="btn-p" onclick="closePoster();openBuilder();" style="font-size:11px;padding:10px 20px;">🛒 Bestellen</button>
+        <button class="xbtn" onclick="closePoster()">✕</button>
+      </div>
+    </div>
+    <div class="pcat">
+      <div class="pcat-title"><span>🍔</span> Smash Burger <span style="font-size:12px;opacity:.35;font-weight:400;font-family:'DM Sans',sans-serif;margin-left:8px;">1 Patty / 2 Patty</span></div>
+      <div class="pcat-items">
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">EL CLÁSSICO</div><div class="p-item-ingr">Beef · American Cheese · Pickles · Onion · Ketchup · Mustard</div></div><div class="p-item-r"><div class="p-price-main">6€</div><div class="p-price-lbl">1 Patty</div><div class="p-price-2">9€</div><div class="p-price-2l">2 Patty</div></div></div>
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">MUUH YORK</div><div class="p-item-ingr">Beef · American Cheese · Beef Bacon · Salat · Tomate · Pickles · Onion · Ketchup · Mustard</div></div><div class="p-item-r"><div class="p-price-main">8€</div><div class="p-price-lbl">1 Patty</div><div class="p-price-2">11€</div><div class="p-price-2l">2 Patty</div></div></div>
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">SMOKY JOE</div><div class="p-item-ingr">Beef · American Cheese · Salat · Tomate · Pickles · Karamellzwiebeln · Smoky Sauce</div></div><div class="p-item-r"><div class="p-price-main">8€</div><div class="p-price-lbl">1 Patty</div><div class="p-price-2">11€</div><div class="p-price-2l">2 Patty</div></div></div>
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">EGGMEK</div><div class="p-item-ingr">Beef · American Cheese · Pickles · Onion · Egg · Sesam · Ketchup · Mustard</div></div><div class="p-item-r"><div class="p-price-main">9€</div><div class="p-price-lbl">1 Patty</div><div class="p-price-2">12€</div><div class="p-price-2l">2 Patty</div></div></div>
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">CHICKERIKI</div><div class="p-item-ingr">Chicken · American Cheese · Salat · Tomate · House Sauce</div></div><div class="p-item-r"><div class="p-price-main">7€</div><div class="p-price-lbl">1 Patty</div><div class="p-price-2">10€</div><div class="p-price-2l">2 Patty</div></div></div>
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">KROSSE KRABBE <span style="font-size:9px;color:var(--o);font-family:'DM Sans',sans-serif;">Aktion</span></div><div class="p-item-ingr">Krabben · Salat · Tomate · House Sauce</div></div><div class="p-item-r"><div class="p-price-main">6€</div></div></div>
+      </div>
+    </div>
+    <div class="pcat">
+      <div class="pcat-title"><span>🌯</span> Baguettes <span style="font-size:12px;opacity:.35;font-weight:400;font-family:'DM Sans',sans-serif;margin-left:8px;">Menü +5€</span></div>
+      <div class="pcat-items">
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">PHILLY CHEESE STEAK</div><div class="p-item-ingr">Beef · Onion · Cheese Sauce</div></div><div class="p-item-r"><div class="p-price-main">13€</div></div></div>
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">NY-CHOPPED CHEESE</div><div class="p-item-ingr">Beef · Cheese · Paprika · Salat · Tomate · Ketchup · Mayo</div></div><div class="p-item-r"><div class="p-price-main">9€</div></div></div>
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">CHICKEN-CHOPPED CHEESE</div><div class="p-item-ingr">Chicken · Cheese · Onion · Paprika · Salat · Tomate · House Sauce</div></div><div class="p-item-r"><div class="p-price-main">9€</div></div></div>
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">MERGUES</div><div class="p-item-ingr">Merguez · Fries · Tomate · Gemüse-Sauce</div></div><div class="p-item-r"><div class="p-price-main">9€</div></div></div>
+        <div class="p-item"><div class="p-item-l"><div class="p-item-name sf">TIGER SHRIMPS</div><div class="p-item-ingr">Shrimps · Fries · Salat · Garlic Mayo</div></div><div class="p-item-r"><div class="p-price-main">9,90€</div></div></div>
+      </div>
+    </div>
+    <div class="pcat">
+      <div class="pcat-title"><span>🍟</span> Snacks</div>
+      <div class="pcat-simple">
+        <div class="p-si"><span class="p-si-name">French Fries</span><span class="p-si-price sf">3,90€</span></div>
+        <div class="p-si"><span class="p-si-name">Sweet Potato Fries</span><span class="p-si-price sf">4,50€</span></div>
+        <div class="p-si"><span class="p-si-name">Coleslaw</span><span class="p-si-price sf">4,00€</span></div>
+        <div class="p-si"><span class="p-si-name">Crab Bites (Stk.)</span><span class="p-si-price sf">1,00€</span></div>
+        <div class="p-si"><span class="p-si-name">Calamari mit Aioli</span><span class="p-si-price sf">6,00€</span></div>
+      </div>
+    </div>
+    <div class="pcat">
+      <div class="pcat-title"><span>🥤</span> Getränke</div>
+      <div class="pcat-simple">
+        <div class="p-si"><span class="p-si-name">Fritz-Kola</span><span class="p-si-price sf">2,50€</span></div>
+        <div class="p-si"><span class="p-si-name">Fritz-Kola Zitrone</span><span class="p-si-price sf">2,50€</span></div>
+        <div class="p-si"><span class="p-si-name">Fritz-Limo Orange</span><span class="p-si-price sf">2,50€</span></div>
+        <div class="p-si"><span class="p-si-name">Fritz-Limo Himbeer</span><span class="p-si-price sf">2,50€</span></div>
+        <div class="p-si"><span class="p-si-name">Fritz Apfelschorle</span><span class="p-si-price sf">2,50€</span></div>
+        <div class="p-si"><span class="p-si-name">Fritz Wasser</span><span class="p-si-price sf">2,00€</span></div>
+        <div class="p-si"><span class="p-si-name" style="color:#e01530">Red Bull Original</span><span class="p-si-price sf">3,50€</span></div>
+        <div class="p-si"><span class="p-si-name" style="color:#e01530">Red Bull Sugarfree</span><span class="p-si-price sf">3,50€</span></div>
+        <div class="p-si"><span class="p-si-name" style="color:#e01530">Red Bull Watermelon</span><span class="p-si-price sf">3,50€</span></div>
+      </div>
+    </div>
+    <div class="pcat">
+      <div class="pcat-title"><span>➕</span> Extras</div>
+      <div class="pcat-simple">
+        <div class="p-si"><span class="p-si-name">Beef Bacon</span><span class="p-si-price sf">2,00€</span></div>
+        <div class="p-si"><span class="p-si-name">Extra Patty</span><span class="p-si-price sf">3,00€</span></div>
+        <div class="p-si"><span class="p-si-name">Egg</span><span class="p-si-price sf">1,50€</span></div>
+        <div class="p-si"><span class="p-si-name">Sauce</span><span class="p-si-price sf">2,00€</span></div>
+        <div class="p-si"><span class="p-si-name">Caramel Onion</span><span class="p-si-price sf">1,50€</span></div>
+        <div class="p-si"><span class="p-si-name">Jalapeños</span><span class="p-si-price sf">1,00€</span></div>
+        <div class="p-si"><span class="p-si-name">American Cheese</span><span class="p-si-price sf">1,50€</span></div>
+        <div class="p-si"><span class="p-si-name">Chili Cheese</span><span class="p-si-price sf">3,00€</span></div>
+        <div class="p-si"><span class="p-si-name">Truffle Mayo</span><span class="p-si-price sf">2,00€</span></div>
+        <div class="p-si"><span class="p-si-name">Extra Sauce</span><span class="p-si-price sf">0,50€</span></div>
+        <div class="p-si"><span class="p-si-name">Yummy</span><span class="p-si-price sf">0,70€</span></div>
+      </div>
+    </div>
+    <div class="poster-cta">
+      <p style="font-size:14px;opacity:.4;margin-bottom:20px;">Bereit zu bestellen?</p>
+      <button class="btn-p" onclick="closePoster();openBuilder();" style="font-size:14px;padding:15px 44px;box-shadow:0 8px 28px rgba(255,107,0,.38);">🛒 Jetzt Bestellen</button>
+    </div>
+  </div>
+</div>
+
+<!-- BUILDER MODAL -->
+<div id="builder-ov">
+  <div id="builder-modal">
+    <div class="bm-head">
+      <div><h2 class="sf" id="bm-title">Artikel konfigurieren</h2><div class="bm-title-sub" id="bm-sub"></div></div>
+      <button style="background:none;border:none;color:var(--c);cursor:pointer;opacity:.45;font-size:24px;line-height:1;" onclick="closeBuilder()">✕</button>
+    </div>
+    <div class="bm-body" id="bm-body"></div>
+    <div class="bm-foot">
+      <div><div class="bm-total-label">Gesamt</div><div class="bm-total sf" id="bm-total">€0,00</div></div>
+      <button class="bm-add" onclick="addToCart()">In den Warenkorb +</button>
+    </div>
+  </div>
+</div>
+
+<!-- CART DRAWER -->
+<div id="cart-overlay" onclick="closeCart()"></div>
+<div id="cart-drawer">
+  <div class="cart-head">
+    <div class="cart-head-left">
+      <svg width="24" height="24" viewBox="0 0 36 36" fill="none">
+        <rect x="5" y="19" width="26" height="12" rx="3" stroke="#FF6B00" stroke-width="1.8"/>
+        <path d="M4 19C4 16 6.5 14 10 14H26C29.5 14 32 16 32 19" stroke="#FF6B00" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <path d="M12 14C12 11 14.5 9 18 9C21.5 9 24 11 24 14Z" fill="#FF6B00"/>
+        <rect x="11" y="14" width="14" height="2" rx="1" fill="#E8A020"/>
+        <rect x="10.5" y="16" width="15" height="2" rx="1" fill="#5C2E00" opacity=".9"/>
+      </svg>
+      <span class="cart-head-title sf">Warenkorb</span>
+      <span class="cart-head-count" id="cart-head-count">0 Artikel</span>
+    </div>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items-container">
+    <div class="cart-empty-state">
+      <svg viewBox="0 0 64 64" fill="none"><rect x="8" y="32" width="48" height="22" rx="5" stroke="currentColor" stroke-width="2"/><path d="M7 32C7 27 11 24 17 24H47C53 24 57 27 57 32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 24C20 19 23 16 32 16C41 16 44 19 44 24Z" fill="currentColor" opacity=".3"/></svg>
+      <p>Dein Warenkorb ist leer</p>
+    </div>
+  </div>
+  <div class="cart-foot" id="cart-foot" style="display:none">
+    <div class="cart-subtotal">
+      <span class="cart-subtotal-lbl">Gesamt</span>
+      <span class="cart-subtotal-val sf" id="cart-total">€0,00</span>
+    </div>
+    <button class="cart-checkout-btn" onclick="openCheckout()">Zur Kasse →</button>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div id="checkout-ov">
+  <div id="checkout-modal">
+    <div class="co-head"><h2 class="sf">Bestellung abschließen</h2><button style="background:none;border:none;color:var(--c);cursor:pointer;opacity:.45;font-size:24px;" onclick="closeCheckout()">✕</button></div>
+    <div id="co-main">
+      <div class="co-body">
+        <!-- Customer number -->
+        <div class="co-num-box">
+          <div class="co-num-label">Deine Bestellnummer für heute</div>
+          <div class="co-num sf" id="co-num">---</div>
+          <div class="co-num-sub">Zeige diese Nummer beim Abholen</div>
+        </div>
+
+        <!-- Delivery type -->
+        <span class="co-sec">Abholung oder Lieferung?</span>
+        <div class="delivery-grid">
+          <div class="delivery-opt sel" id="opt-pickup" onclick="selectDelivery('pickup')">
+            <div class="delivery-opt-icon">🏪</div>
+            <div class="delivery-opt-title">Abholung</div>
+            <div class="delivery-opt-sub">Kostenlos · Bergstraße 31</div>
+          </div>
+          <div class="delivery-opt" id="opt-delivery" onclick="selectDelivery('delivery')">
+            <div class="delivery-opt-icon">🛵</div>
+            <div class="delivery-opt-title">Lieferung</div>
+            <div class="delivery-opt-sub">+3,00€ Liefergebühr</div>
+          </div>
+        </div>
+
+        <!-- Address form (shows when delivery selected) -->
+        <div id="co-address-form">
+          <span style="font-size:11px;color:var(--green);font-weight:600;letter-spacing:.08em;display:block;margin-bottom:12px;">📍 Lieferadresse</span>
+          <!-- Saved address display (appears after first save) -->
+          <div id="co-addr-saved" onclick="editAddress()">
+            <p id="co-addr-saved-text"></p>
+            <small>✏️ Tippe hier um die Adresse zu ändern</small>
+          </div>
+          <!-- Address input form -->
+          <div id="co-addr-inputs">
+            <div class="co-row">
+              <div class="co-field"><label>Vorname</label><input type="text" id="co-fname" placeholder="Max"/></div>
+              <div class="co-field"><label>Nachname</label><input type="text" id="co-lname" placeholder="Mustermann"/></div>
+            </div>
+            <div class="co-field"><label>Telefon</label><input type="tel" id="co-phone" placeholder="+49 ..."/></div>
+            <div class="co-field"><label>Straße & Hausnummer</label><input type="text" id="co-street" placeholder="Musterstraße 42"/></div>
+            <div class="co-row">
+              <div class="co-field"><label>PLZ</label><input type="text" id="co-plz" placeholder="65451"/></div>
+              <div class="co-field"><label>Stadt</label><input type="text" id="co-city" placeholder="Kelsterbach"/></div>
+            </div>
+            <button style="width:100%;padding:10px;background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.3);border-radius:10px;color:var(--green);font-size:12px;cursor:pointer;margin-top:4px;transition:all .3s;letter-spacing:.08em;text-transform:uppercase;font-weight:600;" onclick="saveAddress()" onmouseover="this.style.background='rgba(46,204,113,.22)'" onmouseout="this.style.background='rgba(46,204,113,.12)'">Adresse speichern ✓</button>
+          </div>
+        </div>
+
+        <!-- Payment -->
+        <span class="co-sec">Zahlungsmethode</span>
+        <div class="pay-opts" id="co-pay-opts">
+          <button class="pay-opt sel" onclick="selectPay(this)">💶 Bargeld</button>
+          <button class="pay-opt" onclick="selectPay(this)">💳 Kreditkarte</button>
+          <button class="pay-opt" onclick="selectPay(this)">📱 Apple Pay</button>
+          <button class="pay-opt" onclick="selectPay(this)">📱 Google Pay</button>
+          <button class="pay-opt" onclick="selectPay(this)">🏦 EC-Karte</button>
+          <button class="pay-opt" onclick="selectPay(this)">📲 PayPal</button>
+        </div>
+
+        <!-- Order summary -->
+        <span class="co-sec">Deine Bestellung</span>
+        <div class="co-summary" id="co-summary"></div>
+
+        <button class="co-submit" onclick="submitOrder()">✓ Jetzt verbindlich bestellen</button>
+        <p style="font-size:11px;opacity:.28;text-align:center;margin-top:8px;">Bestellung wird per WhatsApp an das Restaurant gesendet</p>
+      </div>
+    </div>
+    <div id="co-success" style="padding:36px 26px;text-align:center;display:none;">
+      <div style="font-size:56px;margin-bottom:16px;">🎉</div>
+      <h3 class="sf" style="font-size:26px;margin-bottom:12px;">Bestellung aufgegeben!</h3>
+      <p style="opacity:.55;font-size:14px;line-height:1.8;margin-bottom:4px;">Bestellnummer: <strong id="co-success-num" style="color:var(--o);font-size:18px;"></strong></p>
+      <p style="opacity:.55;font-size:14px;line-height:1.8;margin-bottom:16px;" id="co-success-type"></p>
+      <a id="co-wa-link" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:#25D366;color:#fff;border-radius:100px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;text-decoration:none;box-shadow:0 4px 18px rgba(37,211,102,.35);margin-bottom:16px;">
+        <span style="font-size:18px;">💬</span> Bestellung per WhatsApp senden
+      </a>
+      <p style="font-size:12px;opacity:.35;margin-bottom:20px;">Klicke auf den Button um deine Bestellung an<br>+49 1573 2002266 zu senden</p>
+      <button class="btn-p" onclick="closeCheckout();closeCart();">Fertig!</button>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ════════════════════════════════════
+//  DATA & CONSTANTS
+// ════════════════════════════════════
+const FRITZ_DRINKS = [
+  {name:'Fritz-Kola', price:2.5},
+  {name:'Fritz-Kola Zitrone', price:2.5},
+  {name:'Fritz-Limo Orange', price:2.5},
+  {name:'Fritz-Limo Himbeer', price:2.5},
+  {name:'Fritz Apfelschorle', price:2.5},
+  {name:'Fritz Wasser', price:2.0},
+  {name:'Red Bull Original', price:3.5},
+  {name:'Red Bull Sugarfree', price:3.5},
+  {name:'Red Bull Watermelon', price:3.5},
+];
+const SIDES = [
+  {name:'French Fries', price:0},
+  {name:'Sweet Potato Fries', price:0},
+];
+const SNACKS_MENU = [
+  {name:'French Fries',       price:3.9},
+  {name:'Sweet Potato Fries', price:4.5},
+  {name:'Coleslaw',           price:4.0},
+  {name:'Crab Bites (Stk.)',  price:1.0},
+  {name:'Calamari mit Aioli', price:6.0},
+];
+const EXTRAS_MENU = [
+  {name:'Beef Bacon',     price:2.0},
+  {name:'Extra Patty',    price:3.0},
+  {name:'Egg',            price:1.5},
+  {name:'Sauce',          price:2.0},
+  {name:'Caramel Onion',  price:1.5},
+  {name:'Jalapeños',      price:1.0},
+  {name:'American Cheese',price:1.5},
+  {name:'Chili Cheese',   price:3.0},
+  {name:'Truffle Mayo',   price:2.0},
+  {name:'Extra Sauce',    price:0.5},
+  {name:'Yummy',          price:0.7},
+];
+const DELIVERY_FEE = 3.0;
+const PHONE_WA = '4915732002266'; // WhatsApp number
+
+// ════════════════════════════════════
+//  UTIL
+// ════════════════════════════════════
+document.getElementById('year').textContent = new Date().getFullYear();
+const d=new Date(),mnames=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const wrd = document.getElementById('wr-date'); if(wrd) wrd.value=mnames[d.getMonth()]+' '+d.getFullYear();
+
+function fmt(n){ return '€'+(Math.round(n*100)/100).toFixed(2).replace('.',','); }
+
+// ════════════════════════════════════
+//  PARTICLES
+// ════════════════════════════════════
+const pc=document.getElementById('particles'),px=pc.getContext('2d');
+let W,H,pts=[];
+function rsz(){W=pc.width=innerWidth;H=pc.height=innerHeight;}rsz();addEventListener('resize',rsz);
+function mkP(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+.3,vx:(Math.random()-.5)*.22,vy:(Math.random()-.5)*.22,a:Math.random()*.28+.04,h:Math.random()<.7?25:45};}
+for(let i=0;i<60;i++)pts.push(mkP());
+(function dp(){px.clearRect(0,0,W,H);pts.forEach(p=>{px.beginPath();px.arc(p.x,p.y,p.r,0,Math.PI*2);px.fillStyle=`hsla(${p.h},100%,55%,${p.a})`;px.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W||p.y<0||p.y>H)Object.assign(p,mkP());});requestAnimationFrame(dp);})();
+
+const gl=document.getElementById('glow');
+let gx=W/2,gy=H/2,cx2=gx,cy2=gy;
+document.addEventListener('mousemove',e=>{gx=e.clientX;gy=e.clientY;});
+(function gl2(){cx2+=(gx-cx2)*.09;cy2+=(gy-cy2)*.09;gl.style.left=cx2+'px';gl.style.top=cy2+'px';requestAnimationFrame(gl2);})();
+
+// ════════════════════════════════════
+//  INTRO
+// ════════════════════════════════════
+const isc=document.getElementById('intro-sparks'),isx=isc.getContext('2d');
+isc.width=innerWidth;isc.height=innerHeight;
+const spks=[];
+function mkSpk(){spks.push({x:innerWidth/2+(Math.random()-.5)*200,y:innerHeight/2+(Math.random()-.5)*120,vx:(Math.random()-.5)*2.5,vy:-(Math.random()*2+.5),life:1,r:Math.random()*2+.5,h:Math.random()<.6?25:45});}
+for(let i=0;i<20;i++)mkSpk();
+(function ds(){isx.clearRect(0,0,isc.width,isc.height);spks.forEach((s,i)=>{s.x+=s.vx;s.y+=s.vy;s.vy+=.08;s.life-=.012;if(s.life<=0){spks.splice(i,1);mkSpk();return;}isx.beginPath();isx.arc(s.x,s.y,s.r*s.life,0,Math.PI*2);isx.fillStyle=`hsla(${s.h},100%,65%,${s.life*.5})`;isx.fill();});requestAnimationFrame(ds);})();
+setTimeout(()=>document.getElementById('intro-icon').classList.add('show'),150);
+setTimeout(()=>document.querySelectorAll('.intro-half').forEach(h=>h.classList.add('show','glow')),550);
+setTimeout(()=>document.getElementById('intro-line').classList.add('show'),1000);
+setTimeout(()=>document.getElementById('intro-tagline').classList.add('show'),1300);
+setTimeout(()=>{document.getElementById('intro').classList.add('hide');document.getElementById('nav').classList.add('show');document.getElementById('hero-c').classList.add('show');document.getElementById('scroll-h').classList.add('show');},2400);
+window.addEventListener('scroll',()=>{const p=Math.min(scrollY/document.getElementById('home').offsetHeight,1);document.getElementById('hero-img').style.transform=`scale(${1+p*.14})`;},{passive:true});
+
+// ════════════════════════════════════
+//  SCROLL REVEAL
+// ════════════════════════════════════
+const ro=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');ro.unobserve(e.target);}}),{threshold:.08});
+document.querySelectorAll('.rev,.rev-l,.rev-r').forEach(el=>ro.observe(el));
+
+// ════════════════════════════════════
+//  MENU TABS
+// ════════════════════════════════════
+function showCat(id,ev){
+  document.querySelectorAll('.cat-section').forEach(s=>s.classList.remove('visible'));
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('cat-'+id).classList.add('visible');
+  if(ev)ev.target.classList.add('active');
+  document.querySelectorAll('#cat-'+id+' .rev').forEach(el=>{el.classList.remove('v');setTimeout(()=>ro.observe(el),50);});
+}
+function toggleMore(cat){
+  const ex=document.getElementById(cat+'-extra'),btn=document.getElementById(cat+'-more-btn'),open=ex.classList.contains('visible');
+  if(open){ex.classList.remove('visible');btn.innerHTML='Mehr anzeigen <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:16px;height:16px"><path d="m6 9 6 6 6-6"/></svg>';}
+  else{ex.classList.add('visible');btn.innerHTML='Weniger <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:16px;height:16px"><path d="m18 15-6-6-6 6"/></svg>';document.querySelectorAll('#'+cat+'-extra .rev').forEach(el=>{el.classList.remove('v');setTimeout(()=>ro.observe(el),50);});}
+}
+
+// ════════════════════════════════════
+//  REVIEWS CAROUSEL
+// ════════════════════════════════════
+let curR=0,rTmr;
+const rcards=document.querySelectorAll('.rcard'),rdots=document.querySelectorAll('.rdot');
+function goTo(i){rcards[curR].classList.remove('active');rcards[curR].classList.add('prev');setTimeout(()=>rcards[curR].classList.remove('prev'),700);rdots[curR].classList.remove('active');curR=i;rcards[curR].classList.add('active');rdots[curR].classList.add('active');clearInterval(rTmr);rTmr=setInterval(()=>goTo((curR+1)%rcards.length),5000);}
+rTmr=setInterval(()=>goTo((curR+1)%rcards.length),5000);
+
+// ════════════════════════════════════
+//  POSTER MODAL
+// ════════════════════════════════════
+function openPoster(){document.getElementById('poster-ov').classList.add('open');document.body.style.overflow='hidden';}
+function closePoster(){document.getElementById('poster-ov').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('nav-menu-link').addEventListener('click',e=>{e.preventDefault();openPoster();});
+document.getElementById('poster-ov').addEventListener('click',e=>{if(e.target===document.getElementById('poster-ov'))closePoster();});
+
+// ════════════════════════════════════
+//  REVIEW
+// ════════════════════════════════════
+let selStars=5;
+function setStar(v){selStars=v;document.querySelectorAll('.star-pick').forEach((s,i)=>s.classList.toggle('active',i<v));}
+setStar(5);
+function handlePhotos(input){const pr=document.getElementById('photo-preview');pr.innerHTML='';Array.from(input.files).forEach(f=>{const r=new FileReader();r.onload=e=>{const img=document.createElement('img');img.src=e.target.result;img.className='photo-thumb';pr.appendChild(img);};r.readAsDataURL(f);});}
+function submitReview(){const txt=document.getElementById('wr-text').value.trim();if(!txt){alert('Bitte schreibe eine kurze Bewertung.');return;}document.getElementById('wr-success').classList.add('show');document.getElementById('wr-form').style.opacity='.3';setTimeout(()=>{window.open('https://www.google.com/maps/search/Kelsterbite+Smash+Burger+Kelsterbach/@50.0643921,8.528878,17z','_blank');},1500);}
+
+// ════════════════════════════════════
+//  CART STATE
+// ════════════════════════════════════
+let cart = []; // array of cart items
+
+function updateCartUI(){
+  const count=cart.reduce((s,i)=>s+i.qty,0);
+  const totalCents=cart.reduce((s,i)=>s+i.totalPrice*i.qty,0);
+  const countEl=document.getElementById('cart-count');
+  countEl.textContent=count;
+  countEl.classList.toggle('show',count>0);
+  document.getElementById('cart-head-count').textContent=count+' Artikel';
+  document.getElementById('cart-total').textContent=fmt(totalCents);
+  document.getElementById('cart-foot').style.display=cart.length>0?'block':'none';
+  renderCartItems();
+}
+
+function renderCartItems(){
+  const container=document.getElementById('cart-items-container');
+  if(cart.length===0){
+    container.innerHTML=`<div class="cart-empty-state"><svg viewBox="0 0 64 64" fill="none"><rect x="8" y="32" width="48" height="22" rx="5" stroke="currentColor" stroke-width="2"/><path d="M7 32C7 27 11 24 17 24H47C53 24 57 27 57 32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 24C20 19 23 16 32 16C41 16 44 19 44 24Z" fill="currentColor" opacity=".3"/></svg><p>Dein Warenkorb ist leer</p></div>`;
+    return;
+  }
+  container.innerHTML=cart.map((item,idx)=>{
+    const metaParts=[];
+    if(item.pattyLabel) metaParts.push(item.pattyLabel);
+    if(item.notes) metaParts.push('Anmerkung: '+item.notes);
+    const snackParts=item.snacks?item.snacks.filter(s=>s.qty>0).map(s=>`${s.qty}x ${s.name}`):[];
+    const extraParts=item.extras?item.extras.filter(e=>e.qty>0).map(e=>`${e.qty}x ${e.name}`):[];
+    const drinkParts=item.standalonedrinks?item.standalonedrinks.filter(d=>d.qty>0).map(d=>`${d.qty}x ${d.name}`):[];
+    const allParts=[...metaParts,...snackParts,...extraParts,...drinkParts];
+    return `<div class="cart-item">
+      <div class="cart-item-header">
+        <span class="cart-item-name sf">${item.name}</span>
+        <button class="cart-item-del" onclick="removeFromCart(${idx})">×</button>
+      </div>
+      ${allParts.length?`<div class="cart-item-meta">${allParts.join(' · ')}</div>`:''}
+      ${item.upgrade?`<div class="cart-item-upgrade">✓ Menü: ${item.side||'Pommes'} + ${item.drink||'Fritz-Kola'} + ${item.sauce||'Ketchup'}</div>`:''}
+      <div class="cart-item-bottom">
+        <div class="cart-item-qty">
+          <button class="cqb" onclick="changeCartQty(${idx},-1)">−</button>
+          <span class="cqn">${item.qty}</span>
+          <button class="cqb" onclick="changeCartQty(${idx},1)">+</button>
+        </div>
+        <span class="cart-item-price">${fmt(item.totalPrice*item.qty)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function removeFromCart(idx){cart.splice(idx,1);updateCartUI();}
+function changeCartQty(idx,delta){cart[idx].qty=Math.max(1,cart[idx].qty+delta);updateCartUI();}
+function openCart(){document.getElementById('cart-drawer').classList.add('open');document.getElementById('cart-overlay').classList.add('open');document.body.style.overflow='hidden';}
+function closeCart(){document.getElementById('cart-drawer').classList.remove('open');document.getElementById('cart-overlay').classList.remove('open');document.body.style.overflow='';}
+
+// ════════════════════════════════════
+//  BUILDER MODAL
+// ════════════════════════════════════
+let bm = {}; // current builder state
+
+function openBuilder(name, price1, price2){
+  bm = {
+    name: name||null, price1: price1||0, price2: price2||null,
+    patty: '1', qty: 1,
+    upgrade: false, side: 'French Fries', drink: 'Fritz-Kola', sauce: 'Ketchup',
+    snacks: SNACKS_MENU.map(s=>({...s, qty:0})),
+    extras: EXTRAS_MENU.map(e=>({...e, qty:0})),
+    standalonedrinks: FRITZ_DRINKS.map(d=>({...d, qty:0})),
+    notes: ''
+  };
+  const title=document.getElementById('bm-title');
+  const sub=document.getElementById('bm-sub');
+  title.textContent = name ? name : 'Artikel bestellen';
+  sub.textContent = name ? (price1?`ab ${fmt(price1)}`:'') : 'Wähle was du möchtest';
+
+  renderBuilderBody();
+  document.getElementById('builder-ov').classList.add('open');
+  document.body.style.overflow='hidden';
+  calcBuilderTotal();
+}
+function closeBuilder(){document.getElementById('builder-ov').classList.remove('open');document.body.style.overflow='';}
+
+function renderBuilderBody(){
+  const body=document.getElementById('bm-body');
+  const hasTwoPatty = bm.price2 !== null;
+  // Item picker if no preselect
+  const itemPickerHTML = !bm.name ? `
+    <span class="bm-sec">Was möchtest du?</span>
+    <div style="margin-bottom:8px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        ${[{n:'EL CLÁSSICO',p:6,p2:9},{n:'MUUH YORK',p:8,p2:11},{n:'SMOKY JOE',p:8,p2:11},{n:'EGGMEK',p:9,p2:12},{n:'CHICKERIKI',p:7,p2:10},{n:'KROSSE KRABBE',p:6,p2:null},{n:'PHILLY CHEESE STEAK',p:13,p2:null},{n:'NY-CHOPPED CHEESE',p:9,p2:null},{n:'CHICKEN-CHOPPED CHEESE',p:9,p2:null},{n:'MERGUES',p:9,p2:null},{n:'TIGER SHRIMPS',p:9.9,p2:null}]
+          .map(it=>`<div class="bm-opt ${bm.name===it.n?'sel':''}" onclick="bmSelectItem('${it.n}',${it.p},${it.p2})">${it.n}<br><span style="font-size:10px;opacity:.6;">${fmt(it.p)}</span></div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const pattyHTML = hasTwoPatty ? `
+    <span class="bm-sec">Patty Größe</span>
+    <div class="bm-patty">
+      <div class="bm-patty-opt ${bm.patty==='1'?'sel':''}" onclick="bmSetPatty('1')">
+        <div class="pp">${fmt(bm.price1)}</div><div class="pl">1 Patty</div>
+      </div>
+      <div class="bm-patty-opt ${bm.patty==='2'?'sel':''}" onclick="bmSetPatty('2')">
+        <div class="pp">${fmt(bm.price2)}</div><div class="pl">2 Patty</div>
+      </div>
+    </div>` : '';
+
+  const upgradeExtrasHTML = `
+    <div id="bm-upgrade-extras" ${bm.upgrade?'style="display:block"':''}>
+      <div style="font-size:10px;opacity:.45;margin-bottom:6px;letter-spacing:.15em;text-transform:uppercase;">Beilage wählen</div>
+      <div class="bm-opts">
+        ${SIDES.map(s=>`<button class="bm-opt ${bm.side===s.name?'sel':''}" onclick="bmSetSide('${s.name}',this)">${s.name}</button>`).join('')}
+      </div>
+      <div style="font-size:10px;opacity:.45;margin:8px 0 6px;letter-spacing:.15em;text-transform:uppercase;">Getränk wählen</div>
+      <div class="bm-opts">
+        ${FRITZ_DRINKS.map(d=>`<button class="bm-opt ${bm.drink===d.name?'sel':''}" onclick="bmSetDrink('${d.name}',this)">${d.name}<br><span style="font-size:9px;opacity:.55;">${fmt(d.price)}</span></button>`).join('')}
+      </div>
+      <div style="font-size:10px;opacity:.45;margin:8px 0 6px;letter-spacing:.15em;text-transform:uppercase;">Sauce</div>
+      <div class="bm-opts">
+        ${['Ketchup','Mayo','Ketchup & Mayo','Keine'].map(s=>`<button class="bm-opt ${bm.sauce===s?'sel':''}" onclick="bmSetSauce('${s}',this)">${s}</button>`).join('')}
+      </div>
+    </div>`;
+
+  const snacksHTML = `
+    <button class="bm-extras-toggle" id="bm-snacks-toggle" onclick="bmTogglePanel('snacks')">
+      <span>🍟 Snacks hinzufügen</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="bm-extras-panel" id="bm-snacks-panel">
+      ${bm.snacks.map((s,i)=>`<div class="bm-extra-item">
+        <div class="bm-extra-item-left"><div class="bm-extra-item-name">${s.name}</div><div class="bm-extra-item-price">${fmt(s.price)}</div></div>
+        <div class="bm-extra-qty">
+          <button class="eqb" onclick="bmSnackQty(${i},-1)">−</button>
+          <span class="eqn" id="bm-snack-${i}">${s.qty}</span>
+          <button class="eqb" onclick="bmSnackQty(${i},1)">+</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+
+  const drinksHTML = `
+    <button class="bm-extras-toggle" id="bm-drinks-toggle" onclick="bmTogglePanel('drinks')">
+      <span>🥤 Getränk dazu</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="bm-extras-panel" id="bm-drinks-panel">
+      ${bm.standalonedrinks.map((d,i)=>`<div class="bm-extra-item">
+        <div class="bm-extra-item-left"><div class="bm-extra-item-name">${d.name}</div><div class="bm-extra-item-price">${fmt(d.price)}</div></div>
+        <div class="bm-extra-qty">
+          <button class="eqb" onclick="bmDrinkQty(${i},-1)">−</button>
+          <span class="eqn" id="bm-drink-${i}">${d.qty}</span>
+          <button class="eqb" onclick="bmDrinkQty(${i},1)">+</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+
+  const extrasHTML = `
+    <button class="bm-extras-toggle" id="bm-extras-toggle" onclick="bmTogglePanel('extras')">
+      <span>➕ Extras & Toppings</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="bm-extras-panel" id="bm-extras-panel">
+      ${bm.extras.map((e,i)=>`<div class="bm-extra-item">
+        <div class="bm-extra-item-left"><div class="bm-extra-item-name">${e.name}</div><div class="bm-extra-item-price">${fmt(e.price)}</div></div>
+        <div class="bm-extra-qty">
+          <button class="eqb" onclick="bmExtraQty(${i},-1)">−</button>
+          <span class="eqn" id="bm-extra-${i}">${e.qty}</span>
+          <button class="eqb" onclick="bmExtraQty(${i},1)">+</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+
+  body.innerHTML = itemPickerHTML + pattyHTML + `
+    <span class="bm-sec">Menge</span>
+    <div class="bm-qty-row">
+      <div><div class="bm-qty-label">Anzahl</div><div class="bm-qty-info">Jede Einheit wird separat konfiguriert wenn nötig</div></div>
+      <div class="bm-qty-controls">
+        <button class="qb" onclick="bmQty(-1)">−</button>
+        <span class="qn" id="bm-qty-num">${bm.qty}</span>
+        <button class="qb" onclick="bmQty(1)">+</button>
+      </div>
+    </div>
+    <span class="bm-sec">Menü-Upgrade (+5€ pro Stück)</span>
+    <div class="bm-upgrade ${bm.upgrade?'sel':''}" id="bm-upgrade-btn" onclick="bmToggleUpgrade()">
+      <div class="bm-uch" id="bm-uch">${bm.upgrade?'<span style="color:#fff;font-size:11px;font-weight:700;">✓</span>':''}</div>
+      <div class="bm-upgrade-text"><div class="bm-upgrade-title">Zum Menü machen</div><div class="bm-upgrade-desc">+ Fritz Getränk + Pommes oder Süßkartoffel + Ketchup/Mayo</div></div>
+      <div class="bm-upgrade-price">+5€</div>
+    </div>
+    ${upgradeExtrasHTML}
+    <span class="bm-sec">Snacks</span>
+    ${snacksHTML}
+    <span class="bm-sec" style="margin-top:12px;">🥤 Einzelne Getränke</span>
+    ${drinksHTML}
+    <span class="bm-sec" style="margin-top:12px;">Extras & Toppings</span>
+    ${extrasHTML}
+    <span class="bm-sec">Anmerkungen</span>
+    <textarea class="bm-notes" id="bm-notes" onchange="bm.notes=this.value" placeholder="z.B. kein Zwiebeln, extra scharf...">${bm.notes}</textarea>
+    <div style="height:8px"></div>`;
+}
+
+function bmSelectItem(n,p,p2){bm.name=n;bm.price1=p;bm.price2=p2;document.getElementById('bm-title').textContent=n;renderBuilderBody();calcBuilderTotal();}
+function bmSetPatty(v){bm.patty=v;document.querySelectorAll('.bm-patty-opt').forEach((el,i)=>el.classList.toggle('sel',['1','2'][i]===v));calcBuilderTotal();}
+function bmQty(d){bm.qty=Math.max(1,bm.qty+d);const el=document.getElementById('bm-qty-num');if(el)el.textContent=bm.qty;calcBuilderTotal();}
+function bmToggleUpgrade(){bm.upgrade=!bm.upgrade;const btn=document.getElementById('bm-upgrade-btn');const chk=document.getElementById('bm-uch');const ext=document.getElementById('bm-upgrade-extras');if(btn)btn.classList.toggle('sel',bm.upgrade);if(chk)chk.innerHTML=bm.upgrade?'<span style="color:#fff;font-size:11px;font-weight:700;">✓</span>':'';if(ext)ext.style.display=bm.upgrade?'block':'none';calcBuilderTotal();}
+function bmSetSide(v,btn){bm.side=v;btn.closest('.bm-opts').querySelectorAll('.bm-opt').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
+function bmSetDrink(v,btn){bm.drink=v;btn.closest('.bm-opts').querySelectorAll('.bm-opt').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
+function bmSetSauce(v,btn){bm.sauce=v;btn.closest('.bm-opts').querySelectorAll('.bm-opt').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
+function bmTogglePanel(type){const btn=document.getElementById('bm-'+type+'-toggle');const panel=document.getElementById('bm-'+type+'-panel');const open=panel.classList.contains('open');panel.classList.toggle('open',!open);btn.classList.toggle('open',!open);}
+function bmSnackQty(i,d){bm.snacks[i].qty=Math.max(0,bm.snacks[i].qty+d);const el=document.getElementById('bm-snack-'+i);if(el)el.textContent=bm.snacks[i].qty;calcBuilderTotal();}
+function bmExtraQty(i,d){bm.extras[i].qty=Math.max(0,bm.extras[i].qty+d);const el=document.getElementById('bm-extra-'+i);if(el)el.textContent=bm.extras[i].qty;calcBuilderTotal();}
+function bmDrinkQty(i,d){bm.standalonedrinks[i].qty=Math.max(0,bm.standalonedrinks[i].qty+d);const el=document.getElementById('bm-drink-'+i);if(el)el.textContent=bm.standalonedrinks[i].qty;calcBuilderTotal();}
+
+function calcBuilderTotal(){
+  const basePrice = bm.price2 && bm.patty==='2' ? bm.price2 : bm.price1;
+  const upgradePrice = bm.upgrade ? 5 : 0;
+  const snacksPrice = bm.snacks.reduce((s,sn)=>s+sn.price*sn.qty,0);
+  const extrasPrice = bm.extras.reduce((s,e)=>s+e.price*e.qty,0);
+  const drinksPrice = (bm.standalonedrinks||[]).reduce((s,d)=>s+d.price*d.qty,0);
+  const unitPrice = basePrice + upgradePrice + snacksPrice + extrasPrice + drinksPrice;
+  const total = unitPrice * bm.qty;
+  const el=document.getElementById('bm-total');if(el)el.textContent=fmt(total);
+  bm._unitPrice = unitPrice;
+  return total;
+}
+
+function addToCart(){
+  if(!bm.name){alert('Bitte wähle ein Gericht aus.');return;}
+  const notes=document.getElementById('bm-notes');if(notes)bm.notes=notes.value;
+  const drinkObj = FRITZ_DRINKS.find(d=>d.name===bm.drink) || FRITZ_DRINKS[0];
+  const item = {
+    name: bm.name,
+    pattyLabel: bm.price2 ? (bm.patty==='2'?'2 Patty':'1 Patty') : null,
+    upgrade: bm.upgrade,
+    side: bm.side,
+    drink: bm.drink,
+    sauce: bm.sauce,
+    snacks: bm.snacks.filter(s=>s.qty>0).map(s=>({...s})),
+    extras: bm.extras.filter(e=>e.qty>0).map(e=>({...e})),
+    standalonedrinks: (bm.standalonedrinks||[]).filter(d=>d.qty>0).map(d=>({...d})),
+    notes: bm.notes,
+    qty: bm.qty,
+    totalPrice: bm._unitPrice || (bm.patty==='2'&&bm.price2?bm.price2:bm.price1)
+  };
+  // Check if identical item exists (same name + same patty + same upgrade config)
+  const existing = cart.find(c=>c.name===item.name && c.pattyLabel===item.pattyLabel && c.upgrade===item.upgrade && JSON.stringify(c.snacks)===JSON.stringify(item.snacks) && JSON.stringify(c.extras)===JSON.stringify(item.extras));
+  if(existing && !item.notes && !existing.notes){
+    existing.qty += item.qty;
+  } else {
+    cart.push(item);
+  }
+  updateCartUI();
+  closeBuilder();
+  openCart();
+}
+
+// ════════════════════════════════════
+//  CUSTOMER NUMBER (daily, localStorage)
+// ════════════════════════════════════
+function getDailyOrderNum(){
+  const today=new Date().toISOString().split('T')[0];
+  let data;
+  try{data=JSON.parse(localStorage.getItem('kb_orders')||'{}');}catch(e){data={};}
+  if(data.date!==today){data={date:today,count:0};}
+  data.count++;
+  try{localStorage.setItem('kb_orders',JSON.stringify(data));}catch(e){}
+  return String(data.count).padStart(3,'0');
+}
+
+// ════════════════════════════════════
+//  CHECKOUT
+// ════════════════════════════════════
+let deliveryMode = 'pickup';
+let savedAddress = null;
+let orderNum = '';
+
+function openCheckout(){
+  if(cart.length===0){alert('Dein Warenkorb ist leer.');return;}
+  orderNum = getDailyOrderNum();
+  document.getElementById('co-num').textContent = orderNum;
+  document.getElementById('co-main').style.display='block';
+  document.getElementById('co-success').style.display='none';
+  renderCheckoutSummary();
+  // show saved address if exists
+  updateAddressUI();
+  closeCart();
+  document.getElementById('checkout-ov').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeCheckout(){document.getElementById('checkout-ov').classList.remove('open');document.body.style.overflow='';}
+
+function selectDelivery(mode){
+  deliveryMode=mode;
+  document.getElementById('opt-pickup').classList.toggle('sel',mode==='pickup');
+  document.getElementById('opt-delivery').classList.toggle('sel',mode==='delivery');
+  document.getElementById('co-address-form').classList.toggle('show',mode==='delivery');
+  renderCheckoutSummary();
+}
+
+function updateAddressUI(){
+  const form=document.getElementById('co-addr-inputs');
+  const saved=document.getElementById('co-addr-saved');
+  if(savedAddress){
+    form.style.display='none';
+    saved.style.display='block';
+    document.getElementById('co-addr-saved-text').textContent=`${savedAddress.fname} ${savedAddress.lname} · ${savedAddress.phone} · ${savedAddress.street}, ${savedAddress.plz} ${savedAddress.city}`;
+  } else {
+    form.style.display='block';
+    saved.style.display='none';
+  }
+}
+function editAddress(){
+  savedAddress=null;
+  document.getElementById('co-addr-inputs').style.display='block';
+  document.getElementById('co-addr-saved').style.display='none';
+}
+function saveAddress(){
+  const fname=document.getElementById('co-fname').value.trim();
+  const lname=document.getElementById('co-lname').value.trim();
+  const phone=document.getElementById('co-phone').value.trim();
+  const street=document.getElementById('co-street').value.trim();
+  const plz=document.getElementById('co-plz').value.trim();
+  const city=document.getElementById('co-city').value.trim();
+  if(!fname||!street||!plz){alert('Bitte fülle alle Pflichtfelder aus (Name, Straße, PLZ).');return;}
+  savedAddress={fname,lname,phone,street,plz,city};
+  updateAddressUI();
+}
+
+function selectPay(btn){document.querySelectorAll('#co-pay-opts .pay-opt').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
+
+function renderCheckoutSummary(){
+  const fee = deliveryMode==='delivery' ? DELIVERY_FEE : 0;
+  const subtotal = cart.reduce((s,i)=>s+i.totalPrice*i.qty,0);
+  const total = subtotal + fee;
+  let html = cart.map(item=>`<div class="co-sum-item"><span>${item.qty}x ${item.name}${item.pattyLabel?' ('+item.pattyLabel+')':''}</span><span>${fmt(item.totalPrice*item.qty)}</span></div>`).join('');
+  if(fee>0) html+=`<div class="co-sum-item"><span>Liefergebühr</span><span>${fmt(fee)}</span></div>`;
+  html+=`<div class="co-sum-item total"><span>Gesamt</span><span>${fmt(total)}</span></div>`;
+  document.getElementById('co-summary').innerHTML=html;
+}
+
+function buildWhatsAppText(){
+  const fee = deliveryMode==='delivery' ? DELIVERY_FEE : 0;
+  const total = cart.reduce((s,i)=>s+i.totalPrice*i.qty,0)+fee;
+  const selectedPay = document.querySelector('#co-pay-opts .pay-opt.sel')?.textContent || 'Bargeld';
+  let msg = `🍔 *NEUE BESTELLUNG — #${orderNum}*\n\n`;
+  cart.forEach(item=>{
+    msg += `▪️ ${item.qty}x *${item.name}*`;
+    if(item.pattyLabel) msg+=` (${item.pattyLabel})`;
+    if(item.upgrade) msg+=`\n   ✓ Menü: ${item.side} + ${item.drink} + ${item.sauce}`;
+    if(item.snacks&&item.snacks.length) msg+=`\n   Snacks: ${item.snacks.map(s=>`${s.qty}x ${s.name}`).join(', ')}`;
+    if(item.standalonedrinks&&item.standalonedrinks.length) msg+=`\n   Getränke: ${item.standalonedrinks.map(d=>`${d.qty}x ${d.name}`).join(', ')}`;
+    if(item.extras&&item.extras.length) msg+=`\n   Extras: ${item.extras.map(e=>`${e.qty}x ${e.name}`).join(', ')}`;
+    if(item.notes) msg+=`\n   📝 ${item.notes}`;
+    msg+=`  → ${fmt(item.totalPrice*item.qty)}\n`;
+  });
+  msg+=`\n`;
+  if(deliveryMode==='delivery'){
+    msg+=`🛵 *Lieferung* (+${fmt(fee)})\n`;
+    if(savedAddress) msg+=`📍 ${savedAddress.fname} ${savedAddress.lname}, ${savedAddress.street}, ${savedAddress.plz} ${savedAddress.city}\n📞 ${savedAddress.phone}\n`;
+    else msg+=`📍 Adresse wird noch bekannt gegeben\n`;
+  } else {
+    msg+=`🏪 *Abholung* · Bergstraße 31\n`;
+  }
+  msg+=`💳 Zahlung: ${selectedPay}\n`;
+  msg+=`\n💰 *Gesamt: ${fmt(total)}*`;
+  return encodeURIComponent(msg);
+}
+
+function submitOrder(){
+  if(deliveryMode==='delivery' && !savedAddress){
+    // try to save from inputs
+    const fname=document.getElementById('co-fname').value.trim();
+    const street=document.getElementById('co-street').value.trim();
+    if(!fname||!street){alert('Bitte gib deine Lieferadresse an.');return;}
+    saveAddress();
+  }
+  const waText = buildWhatsAppText();
+  const waLink = `https://wa.me/${PHONE_WA}?text=${waText}`;
+  document.getElementById('co-wa-link').href = waLink;
+  document.getElementById('co-success-num').textContent = `#${orderNum}`;
+  document.getElementById('co-success-type').textContent = deliveryMode==='delivery'?`🛵 Lieferung zu dir`:`🏪 Abholung · Bergstraße 31`;
+  document.getElementById('co-main').style.display='none';
+  document.getElementById('co-success').style.display='block';
+  // Reset cart
+  cart=[];updateCartUI();
+}
+
+document.getElementById('checkout-ov').addEventListener('click',e=>{if(e.target===document.getElementById('checkout-ov'))closeCheckout();});
+document.getElementById('builder-ov').addEventListener('click',e=>{if(e.target===document.getElementById('builder-ov'))closeBuilder();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePoster();closeBuilder();closeCheckout();}});
+
+// Scroll progress bar
+window.addEventListener('scroll',()=>{
+  const pct = scrollY/(document.body.scrollHeight-innerHeight)*100;
+  const bar = document.getElementById('scroll-progress');
+  if(bar) bar.style.width = Math.min(pct,100)+'%';
+},{passive:true});
+
+// Stagger reveal
+const staggerObs = new IntersectionObserver(entries=>entries.forEach(e=>{
+  if(e.isIntersecting){e.target.classList.add('fired');staggerObs.unobserve(e.target);}
+}),{threshold:.1});
+document.querySelectorAll('.stagger').forEach(el=>staggerObs.observe(el));
+
+// Count-up animation for stats
+function animateCount(el, target, suffix=''){
+  let start=0, dur=1800, startTime=null;
+  const isFloat = target%1!==0;
+  function step(ts){
+    if(!startTime) startTime=ts;
+    const p=Math.min((ts-startTime)/dur,1);
+    const ease = 1-Math.pow(1-p,3);
+    const val = isFloat ? (start+(target-start)*ease).toFixed(1) : Math.round(start+(target-start)*ease);
+    el.textContent = val + suffix;
+    if(p<1) requestAnimationFrame(step);
+    else el.textContent = target + suffix;
+  }
+  requestAnimationFrame(step);
+}
+const statsObs = new IntersectionObserver(entries=>entries.forEach(e=>{
+  if(e.isIntersecting){
+    const el=e.target;
+    const t=parseFloat(el.dataset.target||'0');
+    const s=el.dataset.suffix||'';
+    animateCount(el,t,s);
+    statsObs.unobserve(el);
+  }
+}),{threshold:.5});
+document.querySelectorAll('.snum[data-target]').forEach(el=>statsObs.observe(el));
+
+// Floating ambient orbs
+const oc=document.getElementById('orbs-canvas');
+if(oc){
+  const ox=oc.getContext('2d');
+  oc.width=innerWidth;oc.height=innerHeight;
+  addEventListener('resize',()=>{oc.width=innerWidth;oc.height=innerHeight;});
+  const orbs=[
+    {x:innerWidth*.15,y:innerHeight*.3,r:180,vx:.18,vy:.12,hue:25},
+    {x:innerWidth*.8,y:innerHeight*.6,r:240,vx:-.14,vy:.1,hue:38},
+    {x:innerWidth*.5,y:innerHeight*.8,r:150,vx:.1,vy:-.16,hue:25},
+    {x:innerWidth*.9,y:innerHeight*.1,r:120,vx:-.12,vy:.18,hue:45},
+  ];
+  (function drawOrbs(){
+    ox.clearRect(0,0,oc.width,oc.height);
+    orbs.forEach(o=>{
+      o.x+=o.vx;o.y+=o.vy;
+      if(o.x<-o.r||o.x>oc.width+o.r)o.vx*=-1;
+      if(o.y<-o.r||o.y>oc.height+o.r)o.vy*=-1;
+      const g=ox.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);
+      g.addColorStop(0,`hsla(${o.hue},100%,55%,0.06)`);
+      g.addColorStop(1,`hsla(${o.hue},100%,55%,0)`);
+      ox.beginPath();ox.arc(o.x,o.y,o.r,0,Math.PI*2);
+      ox.fillStyle=g;ox.fill();
+    });
+    requestAnimationFrame(drawOrbs);
+  })();
+}
+</script>
+</body>
+</html>
